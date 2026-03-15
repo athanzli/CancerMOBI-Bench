@@ -131,27 +131,24 @@ def run_method_custom(
 #### Output format: `ft_score`
 
 Your function needs to return a pandas DataFrame with:
-- **Index**: Feature names in **`MOD@molecule_name`** format (e.g., `mRNA@TP53`, `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`)
+- **Index**: Feature names (format depends on `mode`, see below)
 - **Single column**: Importance scores where **higher values indicate greater importance**
-
-> ⚠️ The index of `ft_score` needs to use the `MOD@molecule_name` format, where `MOD` is one of `mRNA`, `CNV`, `SNV`, `DNAm`, or `miRNA`. This format is required for the benchmark to correctly process and evaluate your results. The only exception is when using `mode=2`, where gene names without modality prefix are accepted.
 
 > ⚠️ If your method produces scores where sign indicates directionality (not importance), convert to absolute values before returning.
 
 #### The `mode` parameter
 
-The `mode` parameter tells the benchmark how to interpret your feature names during evaluation. All evaluations are performed at the gene level (the benchmark automatically maps CpG and miRNA features to genes using provided mapping files), so the benchmark needs to know how to convert your scores.
+The `mode` parameter tells the benchmark how to interpret the **output index of `ft_score`**. Since all evaluations are performed at the gene level, the benchmark uses regulatory mapping files to map CpG sites and miRNAs to their corresponding genes. The `mode` parameter specifies what format your output feature names are in, so the benchmark knows whether this mapping is needed.
 
-| Mode | Description | Feature Name Format | Example |
-|------|-------------|---------------------|---------|
-| `0` | Molecule-centric (default for most methods) | Original molecule-level names with modality prefix | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
-| `1` | Gene-centric with modality | Gene names with modality prefix | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
-| `2` | Gene-centric without modality | Gene names only (no modality prefix) | `TP53`, `KRAS`, `EGFR` |
+| Mode | When to use | `ft_score` index format | Example |
+|------|-------------|------------------------|---------|
+| `0` | Your method scores features at the original molecule level (default) | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
+| `1` | Your method already maps features to genes internally, but keeps the modality prefix | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
+| `2` | Your method outputs a single score per gene, without modality prefix | `gene` | `TP53`, `KRAS`, `EGFR` |
 
-**Choose based on your method's output:**
-- **Mode 0**: Your method operates on original features and outputs scores for CpGs, miRNAs, genes, etc.
-- **Mode 1**: Your method maps features to genes but retains modality information (e.g., distinguishes `DNAm@TP53` from `mRNA@TP53`)
-- **Mode 2**: Your method outputs gene-level scores without distinguishing which omics type the score came from
+- **Mode 0** (default): Use this if your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level.
+- **Mode 1**: Use this if your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately).
+- **Mode 2**: Use this if your method produces one aggregated score per gene, regardless of which omics type it came from.
 
 #### Example implementation
 
