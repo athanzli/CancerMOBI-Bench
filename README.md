@@ -47,7 +47,7 @@ Download `data.zip` from https://zenodo.org/records/17860662 and place it in the
 mkdir -p data && unzip data.zip -d data
 ```
 
-This creates a `data/` directory under the repository root. At a minimum, the following files must exist:
+This creates a `data/` directory under the repository root. At a minimum, the following files need to exist:
 
 - `<repo_root>/data/TCGA/TCGA_cpg2gene_mapping.csv`
 - `<repo_root>/data/TCGA/TCGA_miRNA2gene_mapping.csv`
@@ -130,11 +130,11 @@ def run_method_custom(
 
 #### Output format: `ft_score`
 
-Your function must return a pandas DataFrame with:
+Your function needs to return a pandas DataFrame with:
 - **Index**: Feature names in **`MOD@molecule_name`** format (e.g., `mRNA@TP53`, `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`)
 - **Single column**: Importance scores where **higher values indicate greater importance**
 
-> ⚠️ The index of `ft_score` **must** use the `MOD@molecule_name` format, where `MOD` is one of `mRNA`, `CNV`, `SNV`, `DNAm`, or `miRNA`. This format is required for the benchmark to correctly process and evaluate your results. The only exception is when using `mode=2`, where gene names without modality prefix are accepted.
+> ⚠️ The index of `ft_score` needs to use the `MOD@molecule_name` format, where `MOD` is one of `mRNA`, `CNV`, `SNV`, `DNAm`, or `miRNA`. This format is required for the benchmark to correctly process and evaluate your results. The only exception is when using `mode=2`, where gene names without modality prefix are accepted.
 
 > ⚠️ If your method produces scores where sign indicates directionality (not importance), convert to absolute values before returning.
 
@@ -363,7 +363,7 @@ The returned `ft_score` is a single-column DataFrame (column `'score'`) indexed 
 
 #### Input data format
 
-Feature matrices (`X_train`, `X_val`, `X_test`) must be pandas DataFrames with columns in `MOD@molecule` format:
+Feature matrices (`X_train`, `X_val`, `X_test`) should be pandas DataFrames with columns in `MOD@molecule` format:
 
 | Omics Type | Feature Level | Example Column Names |
 |------------|---------------|---------------------|
