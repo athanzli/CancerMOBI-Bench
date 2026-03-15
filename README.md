@@ -464,7 +464,7 @@ print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from R
 
 ## Citation
 
-If you find CancerMOBI-Bench useful in your research, please cite our paper:
+Please cite our paper as:
 
 ```bibtex
 @article{li2025benchmarking,
