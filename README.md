@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**CancerMOBI-Bench** is a comprehensive benchmark for evaluating computational methods for multi-omics biomarker identification in cancer. It evaluates methods against clinically validated reference biomarkers across 5 TCGA cancer datasets and 20 baseline methods.
+**CancerMOBI-Bench** is a benchmark for evaluating computational methods for multi-omics biomarker identification in cancer. It evaluates methods against clinically validated reference biomarkers across 5 TCGA cancer datasets and 20 baseline methods.
 
 > **Paper**: Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.64898/2025.12.18.695266). bioRxiv (2025).
 
