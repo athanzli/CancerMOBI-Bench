@@ -74,9 +74,7 @@ This section guides you through running your method on our benchmark pipeline to
 
 ### Step 1: Implement your method's wrapper function
 
-Create a function that wraps your method and follows the required signature. This function will be called by the benchmark pipeline for each dataset, omics combination, and cross-validation fold.
-
-#### Function signature
+Create a function that wraps your method and follows the required signature.
 
 ```python
 def run_method_custom(
@@ -90,9 +88,9 @@ def run_method_custom(
 ):
     """
     A custom function to run your method for benchmarking.
-    Note that our pipeline will input its train, val, and test data/labels to this
-    wrapper function, but you can freely choose from the input data/labels of the
-    train/val/test splits to run your method, based on your experimental design.
+    The pipeline provides pre-split train/val/test data, but you are not
+    required to use all of them. For example, you may only use the training
+    set if your method does not need validation or test data.
 
     Args:
         X_train (pd.DataFrame): Training features.
@@ -101,6 +99,9 @@ def run_method_custom(
         y_train (pd.DataFrame): Training labels.
             - Index: sample IDs
             - Column: 'label' (for binary classification) or 'T', 'E' (for survival analysis)
+            - For survival tasks, labels are provided as binary (high/low risk) by default,
+              split at the median survival time. You can also set a custom survival time
+              cutoff (e.g., 365 days, 1825 days) via the `surv_op` parameter in `run_benchmark()`.
         X_val (pd.DataFrame): Validation features (same format as X_train)
         y_val (pd.DataFrame): Validation labels (same format as y_train)
         X_test (pd.DataFrame): Test features (same format as X_train)
