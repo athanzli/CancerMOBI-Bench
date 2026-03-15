@@ -142,13 +142,9 @@ The `mode` parameter tells the benchmark how to interpret the **output index of 
 
 | Mode | When to use | `ft_score` index format | Example |
 |------|-------------|------------------------|---------|
-| `0` | Your method scores features at the original molecule level (default) | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
-| `1` | Your method already maps features to genes internally, but keeps the modality prefix | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
-| `2` | Your method outputs a single score per gene, without modality prefix | `gene` | `TP53`, `KRAS`, `EGFR` |
-
-- **Mode 0** (default): Use this if your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level.
-- **Mode 1**: Use this if your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately).
-- **Mode 2**: Use this if your method produces one aggregated score per gene, regardless of which omics type it came from.
+| `0` (default) | Your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level. | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
+| `1` | Your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately). | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
+| `2` | Your method produces one aggregated score per gene, regardless of which omics type it came from. | `gene` | `TP53`, `KRAS`, `EGFR` |
 
 #### Example implementation
 
