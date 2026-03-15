@@ -53,7 +53,7 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 - `<repo_root>/data/TCGA/TCGA_miRNA2gene_mapping.csv`
 - `<repo_root>/data/bk_set/processed/survival_task_bks.csv`
 - `<repo_root>/data/bk_set/processed/drug_response_task_bks.csv`
-- `data/TCGA/<task_name>/*_CNV+DNAm+SNV+mRNA+miRNA.pkl` (for each task you run)
+- `<repo_root>/data/TCGA/<task_name>/*_CNV+DNAm+SNV+mRNA+miRNA.pkl` (for each task you run)
 
 ### Dependencies
 
