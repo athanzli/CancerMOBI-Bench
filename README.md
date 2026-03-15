@@ -1,11 +1,18 @@
-# Benchmarking computational methods for multi-omics biomarker discovery in cancer
+# CancerMOBI-Bench: Cancer Multi-Omics Biomarker Identification Benchmark
 
-This repository provides a benchmark pipeline for evaluating multi-omics biomarker identification methods against clinically validated reference biomarkers. It supports two main use cases:
+[![Paper](https://img.shields.io/badge/Paper-bioRxiv-b31b1b)](https://doi.org/10.64898/2025.12.18.695266)
+[![Data](https://img.shields.io/badge/Data-Zenodo-blue)](https://zenodo.org/records/17860662)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+**CancerMOBI-Bench** is a comprehensive benchmark for evaluating computational methods for multi-omics biomarker identification in cancer. It evaluates methods against clinically validated reference biomarkers across 5 TCGA cancer datasets and 20 baseline methods.
+
+> **Paper**: Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.64898/2025.12.18.695266). bioRxiv (2025).
+
+This repository supports two main use cases:
 
 1. **Benchmark your method**: Run your own method and compare its biomarker identification performance against 20 baselines.
 2. **Discover candidate biomarkers**: Run any of the 20 benchmarked methods on TCGA data and aggregate their gene rankings via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
-
-For more information, see our [manuscript](https://doi.org/10.64898/2025.12.18.695266) *Benchmarking computational methods for multi-omics biomarker discovery in cancer*
 
 ![Workflow](figures/fig_workflow.png)
 
@@ -26,7 +33,7 @@ For more information, see our [manuscript](https://doi.org/10.64898/2025.12.18.6
   - [Step 2: Aggregate rankings with RRA](#step-2-aggregate-rankings-with-rra)
 - [Available datasets](#available-datasets)
 - [Evaluation metrics](#evaluation-metrics)
-- [Reference](#reference)
+- [Citation](#citation)
 
 ---
 
@@ -455,6 +462,18 @@ print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from R
 
 ---
 
-## Reference
+## Citation
 
-Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. *Benchmarking computational methods for multi-omics biomarker discovery in cancer*. bioRxiv (2025). doi: https://doi.org/10.64898/2025.12.18.695266
+If you find CancerMOBI-Bench useful in your research, please cite our paper:
+
+```bibtex
+@article{li2025benchmarking,
+  title={Benchmarking computational methods for multi-omics biomarker discovery in cancer},
+  author={Li, Athan Z. and Du, Yuxuan and Liu, Yan and Chen, Liang and Liu, Ruishan},
+  journal={bioRxiv},
+  year={2025},
+  doi={10.64898/2025.12.18.695266}
+}
+```
+
+Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.64898/2025.12.18.695266). bioRxiv (2025).
