@@ -41,15 +41,18 @@ This repository supports two main use cases:
 
 ### Download the benchmark data
 
-Download `data.zip` from https://zenodo.org/records/17860662, and
-run `mkdir -p data && unzip data.zip -d data`
+Download `data.zip` from https://zenodo.org/records/17860662 and place it in the repository root directory. Then run:
 
-At a minimum, the following files must exist:
+```bash
+mkdir -p data && unzip data.zip -d data
+```
 
-- `data/TCGA/TCGA_cpg2gene_mapping.csv`
-- `data/TCGA/TCGA_miRNA2gene_mapping.csv`
-- `data/bk_set/processed/survival_task_bks.csv`
-- `data/bk_set/processed/drug_response_task_bks.csv`
+This creates a `data/` directory under the repository root. At a minimum, the following files must exist:
+
+- `<repo_root>/data/TCGA/TCGA_cpg2gene_mapping.csv`
+- `<repo_root>/data/TCGA/TCGA_miRNA2gene_mapping.csv`
+- `<repo_root>/data/bk_set/processed/survival_task_bks.csv`
+- `<repo_root>/data/bk_set/processed/drug_response_task_bks.csv`
 - `data/TCGA/<task_name>/*_CNV+DNAm+SNV+mRNA+miRNA.pkl` (for each task you run)
 
 ### Dependencies
