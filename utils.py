@@ -293,7 +293,7 @@ def evaluate_accuracy(
         bk (np.ndarray): array of ground truth gene names.
     """
     ft_gset = ft_score.index.values # update current gene set
-    ft = ft_score.copy()
+    ft = ft_score.sort_values('score', ascending=False).copy()
     mask = np.isin(bk, ft_gset)
     if len(set(bk) - set(ft_gset)) == len(bk): # if ft gset contains no bk
         raise ValueError("The feature set contains no biomarkers. Evaluation aborted.")
@@ -688,7 +688,7 @@ def plot_benchmark_results(
 
     omics_combs_str_your_method, is_fallback_mode = _normalize_omics_combs(omics_types)
     folds = _normalize_folds(fold_to_run)
-    
+
     # In fallback mode: baselines use all available combinations, Your Method uses requested combinations
     # In normal mode: both use the same requested combinations
     if is_fallback_mode:
@@ -697,16 +697,34 @@ def plot_benchmark_results(
               f"Baselines will be averaged across all available combinations: {omics_combs_str_baseline}")
     else:
         omics_combs_str_baseline = omics_combs_str_your_method
-    
+
+    # ============================================================================
+    # Determine which tasks Your Method has results for, so baselines are
+    # filtered to the same tasks for fair comparison
+    # ============================================================================
+    your_method_tasks = set()
+    for metric_data in acc_res.values():
+        for key in metric_data.keys():
+            task, omics_comb, fold = key
+            your_method_tasks.add(task)
+    for metric_data in sta_res.values():
+        for key in metric_data.keys():
+            task = key[0]
+            your_method_tasks.add(task)
+    # Preserve canonical ordering from TASK_SHORT, restricted to tasks with Your Method data
+    tasks_to_plot = [t for t in TASK_SHORT.keys() if t in your_method_tasks]
+    if not tasks_to_plot:
+        raise ValueError("No tasks found in acc_res or sta_res. Cannot plot benchmark results.")
+
     # ============================================================================
     # Build baseline DataFrames from bl_acc and bl_sta filtered by omics_combs and folds
     # ============================================================================
     acc_metric_map = {'AR': 'AR', 'NDCG': 'NDCG', 'RR': 'RR', 'MW_pval': 'mwtestpval_exact'}
     sta_metric_map = {'Kendall_tau': 'KendallTau', 'RBO': 'RBO', 'PSD': 'RPSD'}
-    
+
     def build_baseline_acc_df(metric_key):
         bl_metric_key = acc_metric_map[metric_key]
-        tasks = list(TASK_SHORT.keys())
+        tasks = tasks_to_plot
         data = {}
         models = list(BASELINES)
         for task in tasks:
@@ -743,7 +761,7 @@ def plot_benchmark_results(
     
     def build_baseline_sta_df(metric_key):
         bl_metric_key = sta_metric_map[metric_key]
-        tasks = list(TASK_SHORT.keys())
+        tasks = tasks_to_plot
         data = {}
         for task in tasks:
             df_sta = bl_sta[(task, bl_metric_key)]
@@ -1060,9 +1078,7 @@ def plot_benchmark_results(
         plt.savefig(f'./figures/fig_task_{safe_task_name}.pdf', dpi=300, facecolor='white')
         plt.show()
 
-    TASKS = ['survival_BRCA', 'survival_LUAD', 'survival_COADREAD', 
-            'drug_response_Cisplatin-BLCA', 'drug_response_Temozolomide-LGG']
-    for task in TASKS:
+    for task in tasks_to_plot:
         plot_task_violin_comparison(task)
 
     # ============================================================================
@@ -1118,7 +1134,7 @@ def plot_benchmark_results(
     def plot_mw_pval_boxplots():
         """Create figure with MW p-value (-log10) box plots for tasks with Your Method results."""
         tasks_with_data = []
-        for task_name in TASKS:
+        for task_name in tasks_to_plot:
             df_your = build_your_method_mw_pval_individual(task_name)
             if not df_your.empty and df_your['value'].notna().any():
                 tasks_with_data.append(task_name)

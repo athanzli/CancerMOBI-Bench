@@ -1,8 +1,32 @@
 # Benchmarking computational methods for multi-omics biomarker discovery in cancer
 
-This repository provides a benchmark pipeline to evaluate the biomarker identification performance of multi-omics integration methods. Five real-world TCGA datasets with systematically curated gold-standard biomarker sets are provided for comprehensive evaluation. The user can conveniently run their method and compare its performance with 20 other baselines.
+This repository provides a benchmark pipeline for evaluating multi-omics biomarker identification methods against clinically validated reference biomarkers. It supports two main use cases:
+
+1. **Benchmark your method**: Run your own method and compare its biomarker identification performance against 20 baselines.
+2. **Discover candidate biomarkers**: Run any of the 20 benchmarked methods on TCGA data and aggregate their gene rankings via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
 
 For more information, see our [manuscript](https://doi.org/10.64898/2025.12.18.695266) *Benchmarking computational methods for multi-omics biomarker discovery in cancer*
+
+![Workflow](figures/fig_workflow.png)
+
+---
+
+## Table of Contents
+
+- [Installation](#installation)
+  - [Download the benchmark data](#download-the-benchmark-data)
+  - [Dependencies](#dependencies)
+- [Use Case 1: Benchmark your method](#use-case-1-benchmark-your-method)
+  - [Step 1: Implement your method's wrapper function](#step-1-implement-your-methods-wrapper-function)
+  - [Step 2: Run the benchmark](#step-2-run-the-benchmark)
+  - [Understanding the output](#understanding-the-output)
+- [Use Case 2: Discover candidate biomarkers](#use-case-2-discover-candidate-biomarkers)
+  - [Additional dependencies](#additional-dependencies)
+  - [Step 1: Run benchmarked methods](#step-1-run-benchmarked-methods)
+  - [Step 2: Aggregate rankings with RRA](#step-2-aggregate-rankings-with-rra)
+- [Available datasets](#available-datasets)
+- [Evaluation metrics](#evaluation-metrics)
+- [Reference](#reference)
 
 ---
 
@@ -10,9 +34,10 @@ For more information, see our [manuscript](https://doi.org/10.64898/2025.12.18.6
 
 ### Download the benchmark data
 
-Download `data.zip` from https://zenodo.org/records/17860662, unzip, and place the extracted `data/` folder at the repository root.
+Download `data.zip` from https://zenodo.org/records/17860662, and
+run `mkdir -p data && unzip data.zip -d data`
 
-At minimum, the following files must exist:
+At a minimum, the following files must exist:
 
 - `data/TCGA/TCGA_cpg2gene_mapping.csv`
 - `data/TCGA/TCGA_miRNA2gene_mapping.csv`
@@ -28,15 +53,14 @@ At minimum, the following files must exist:
 python -m pip install numpy pandas scipy scikit-learn matplotlib seaborn rbo
 ```
 
+---
 
-## Usage
+## Use Case 1: Benchmark your method
 
-This section guides you through running your method on our benchmark pipeline. The process consists of two main steps:
+This section guides you through running your method on our benchmark pipeline to compare its biomarker identification performance against 20 baselines. The process consists of two main steps:
 
 1. Implement a wrapper function for your method
 2. Run the benchmark using the provided pipeline
-
----
 
 ### Step 1: Implement your method's wrapper function
 
@@ -56,16 +80,16 @@ def run_method_custom(
 ):
     """
     A custom function to run your method for benchmarking.
-    Note that our pipeline will input its train, val, and test data/labels to this 
-    wrapper function, but you can freely choose from the input data/labels of the 
+    Note that our pipeline will input its train, val, and test data/labels to this
+    wrapper function, but you can freely choose from the input data/labels of the
     train/val/test splits to run your method, based on your experimental design.
 
     Args:
-        X_train (pd.DataFrame): Training features. 
+        X_train (pd.DataFrame): Training features.
             - Index: sample IDs
             - Columns: feature names in "MOD@feature" format (e.g., "mRNA@TP53", "DNAm@cg00000029")
         y_train (pd.DataFrame): Training labels.
-            - Index: sample IDs  
+            - Index: sample IDs
             - Column: 'label' (for binary classification) or 'T', 'E' (for survival analysis)
         X_val (pd.DataFrame): Validation features (same format as X_train)
         y_val (pd.DataFrame): Validation labels (same format as y_train)
@@ -131,19 +155,19 @@ def run_method_custom(
     from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
     import numpy as np
-    
+
     y_trn = y_train['label'].values
-    
+
     model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train.values, y_trn)
-    
+
     importances = model.feature_importances_
-    
+
     ft_score = pd.DataFrame(
         index=X_train.columns,
         data={'score': importances}
     )
-    
+
     return ft_score
 ```
 
@@ -166,49 +190,37 @@ acc_res, sta_res = run_benchmark(
 
 The benchmark automatically handles train/validation/test splitting, label preparation, and data scaling. Your method receives pre-processed data ready for model training/running.
 
-#### Available datasets
-
-You can specify which dataset(s) to run using either integer codes or string names:
-
-| Code | Dataset Name | Task Type | Cancer Type |
-|------|--------------|-----------|-------------|
-| `0` | `survival_BRCA` | Survival prediction | Breast Cancer |
-| `1` | `survival_LUAD` | Survival prediction | Lung Adenocarcinoma |
-| `2` | `survival_COADREAD` | Survival prediction | Colorectal Cancer |
-| `3` | `drug_response_Cisplatin-BLCA` | Drug response prediction | Bladder Cancer (Cisplatin) |
-| `4` | `drug_response_Temozolomide-LGG` | Drug response prediction | Low-Grade Glioma (Temozolomide) |
-
 #### Configuration options
 
 ```python
 acc_res, sta_res = run_benchmark(
     run_method_custom_func=run_method_custom,
-    
+
     # Select specific dataset(s) - default: all datasets [0,1,2,3,4]
     datasets_to_run=[0, 1],  # Run on BRCA and LUAD survival tasks
     # Or use string names:
     # datasets_to_run=['survival_BRCA', 'survival_LUAD'],
-    
+
     # Select specific omics combination(s) - default: all 6 tri-omics combinations (with mRNA included)
     omics_types=['DNAm', 'mRNA', 'miRNA'],  # Single combination as a list
     # Or multiple combinations as a list of lists:
     # omics_types=[['DNAm', 'mRNA', 'miRNA'], ['CNV', 'mRNA', 'miRNA']],
-    
+
     # Select specific fold(s) - default: all 5 folds (0-4)
     fold_to_run=[0, 1, 2],  # Run only folds 0, 1, 2
     # Or single fold:
     # fold_to_run=0,
-    
+
     # Survival label handling - default: 'binary'
     # By default, survival times are converted to binary labels (long/short based on median).
     # Set to 'continuous' if your method handles survival analysis directly (with censoring info).
     surv_op='binary',
-    
+
     # Data scaling method - default: 'standard'
     scaling='standard',  # Z-score normalization
     # scaling='minmax',  # Min-max normalization (0-1)
     # scaling=None,  # No scaling
-    
+
     # Output path - default: './result/'
     res_save_path='./result/my_method/',
 )
@@ -294,7 +306,141 @@ figures/                                    # Comparison plots
 └── fig_mw_pval_boxplots.pdf                # Mann-Whitney p-value distribution
 ```
 
-#### Evaluation metrics
+---
+
+## Use Case 2: Discover candidate biomarkers
+
+![Method Selection Guide](figures/fig_method_selection_guide.png)
+
+This repository provides a unified Python interface (`run_method.py`) to run any of the 20 benchmarked methods on any multi-omics data, plus an aggregation utility (`aggregate_rankings.py`) to combine rankings via Robust Rank Aggregation (RRA) into a consensus candidate biomarker list.
+
+### Additional dependencies
+
+Running the benchmarked methods requires their respective dependencies (e.g., PyTorch, rpy2). For RRA, you also need R with the `RobustRankAggreg` package:
+
+```bash
+# Python
+pip install rpy2 torch
+
+# R
+Rscript -e 'install.packages("RobustRankAggreg")'
+```
+
+Individual methods may have additional dependencies (e.g., GNN-SubNet requires PyTorch Geometric; DIABLO and asmbPLS-DA require R packages `mixOmics` and `asmbPLS`). Refer to each method's directory under `code/selected_models/<method_name>/` for details.
+
+### Step 1: Run benchmarked methods
+
+Use `run_method()` from `run_method.py` to run any benchmarked method. It handles all internal dispatching and argument normalization.
+
+```python
+from run_method import run_method
+
+# Unsupervised method (no labels needed)
+ft_score = run_method('GAUDI', X_train=X_trn)
+
+# Statistical/ML method (needs train + test)
+ft_score = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
+                      X_test=X_tst, y_test=y_tst)
+
+# Deep learning method (needs train + val + test + GPU)
+ft_score = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
+                      X_val=X_val, y_val=y_val,
+                      X_test=X_tst, y_test=y_tst, device='cuda:0')
+```
+
+The returned `ft_score` is a single-column DataFrame (column `'score'`) indexed by feature name in `MOD@molecule` format (e.g., `mRNA@TP53`, `DNAm@cg00000029`). Higher scores indicate greater importance.
+
+#### Input data format
+
+Feature matrices (`X_train`, `X_val`, `X_test`) must be pandas DataFrames with columns in `MOD@molecule` format:
+
+| Omics Type | Feature Level | Example Column Names |
+|------------|---------------|---------------------|
+| mRNA | Gene-level | `mRNA@TP53`, `mRNA@KRAS` |
+| CNV | Gene-level | `CNV@APOC1`, `CNV@MYC` |
+| SNV | Gene-level | `SNV@TP53`, `SNV@BRAF` |
+| DNAm | CpG-level | `DNAm@cg00000029`, `DNAm@cg22832044` |
+| miRNA | miRNA-level | `miRNA@hsa-miR-100-5p` |
+
+Label DataFrames (`y_train`, `y_val`, `y_test`) should have a single `'label'` column.
+
+#### Available methods
+
+| Category | Methods | Required inputs |
+|----------|---------|----------------|
+| Unsupervised | `GAUDI`, `MCIA` | `X_train` only |
+| Statistical/ML | `DIABLO`, `asmPLSDA`, `Stabl`, `GDF` | `X_train`, `y_train`, `X_test`, `y_test` |
+| Deep learning | `DeePathNet`, `DeepKEGG`, `MOGLAM`, `CustOmics`, `TMONet`, `GENIUS`, `Pathformer`, `MOGONET`, `MORE`, `MoAGLSA`, `PNet`, `GNNSubNet` | All splits + `device` |
+| Other | `MOFA`, `DPM` | `X_train` (+ `y_train` for DPM) |
+
+> If a DL method requires validation/test data that you don't have, `run_method()` will automatically split the training data or reuse available sets.
+
+#### Notes on validation and test sets
+
+- **Validation set** (`X_val`, `y_val`): Used only for early stopping during deep learning model training. It does not affect the final biomarker rankings.
+- **Test set** (`X_test`, `y_test`): Used primarily for biomarker identification (computing feature importance scores). Some methods also report predictive performance metrics on this set.
+
+**Recommendation for biomarker identification**: To maximize the data available for computing feature importance scores, we recommend passing your **training set** as the test set arguments (i.e., `X_test=X_train, y_test=y_train`). Using more samples for biomarker identification can yield more robust importance scores. If you are interested in evaluating predictive performance, pass a held-out validation or test set instead.
+
+### Step 2: Aggregate rankings with RRA
+
+Use `aggregate_rankings.py` to combine rankings from multiple methods or folds into a consensus gene ranking.
+
+```python
+from aggregate_rankings import aggregate_rankings, aggregate_rankings_from_ft_scores
+
+# Option A: from ranked lists (feature names ordered by importance)
+consensus = aggregate_rankings([ranking1, ranking2, ranking3])
+
+# Option B: directly from feature score DataFrames
+consensus = aggregate_rankings_from_ft_scores([ft_score1, ft_score2, ft_score3])
+
+print(consensus.head(10))
+# Returns a DataFrame with 'p-value' column, sorted ascending.
+# Lower p-values = more consistently top-ranked across inputs.
+```
+
+#### Full example: run multiple methods and build a consensus panel
+
+```python
+from run_method import run_method, run_method_rra
+from aggregate_rankings import aggregate_rankings_from_ft_scores
+
+# Option A: run methods individually, then aggregate
+ft_diablo = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
+                       X_test=X_tst, y_test=y_tst)
+ft_kegg = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
+                     X_val=X_val, y_val=y_val,
+                     X_test=X_tst, y_test=y_tst, device='cuda:0')
+consensus = aggregate_rankings_from_ft_scores([ft_diablo, ft_kegg])
+print(consensus.head(20))
+
+# Option B: use run_method_rra to run multiple methods and aggregate in one call
+ft_score = run_method_rra(
+    ['DIABLO', 'GDF', 'DeepKEGG'],
+    X_train=X_trn, y_train=y_trn,
+    X_val=X_val, y_val=y_val,
+    X_test=X_tst, y_test=y_tst, device='cuda:0')
+print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from RRA)
+```
+
+> Note: `run_method_rra()` internally converts each method's output to gene-level scores before aggregation, so the returned DataFrame is indexed by gene name (without modality prefix). If you use `run_method_rra()` as a wrapper for `run_benchmark()`, set `mode=2` in your wrapper function.
+
+---
+
+## Available datasets
+
+| Code | Dataset Name | Task Type | Cancer Type |
+|------|--------------|-----------|-------------|
+| `0` | `survival_BRCA` | Survival prediction | Breast Cancer |
+| `1` | `survival_LUAD` | Survival prediction | Lung Adenocarcinoma |
+| `2` | `survival_COADREAD` | Survival prediction | Colorectal Cancer |
+| `3` | `drug_response_Cisplatin-BLCA` | Drug response prediction | Bladder Cancer (Cisplatin) |
+| `4` | `drug_response_Temozolomide-LGG` | Drug response prediction | Low-Grade Glioma (Temozolomide) |
+
+---
+
+## Evaluation metrics
 
 **Accuracy Metrics** (how well your method identifies known biomarkers):
 - **AR** (Average Recall): Average recall rates of biomarkers across ranking
@@ -307,8 +453,8 @@ figures/                                    # Comparison plots
 - **RBO** (Rank-Biased Overlap): Top-weighted similarity measure
 - **PSD** (Percentile Standard Deviation): Variation in biomarker positions across folds (lower = more stable)
 
+---
+
 ## Reference
 
 Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. *Benchmarking computational methods for multi-omics biomarker discovery in cancer*. bioRxiv (2025). doi: https://doi.org/10.64898/2025.12.18.695266
-
----
