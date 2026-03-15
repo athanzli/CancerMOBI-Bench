@@ -12,7 +12,7 @@
 This repository supports two main use cases:
 
 1. **Benchmark your method**: Run your own method and compare its biomarker identification performance against 20 baselines.
-2. **Discover candidate biomarkers**: Run any of the 20 benchmarked methods on TCGA data and aggregate their gene rankings via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
+2. **Discover candidate biomarkers**: Run recommended benchmarked methods on custom multi-omics data and aggregate via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
 
 ![Workflow](figures/fig_workflow.png)
 
@@ -329,8 +329,8 @@ Running the benchmarked methods requires their respective dependencies (e.g., Py
 # Python
 pip install rpy2 torch
 
-# R
-Rscript -e 'install.packages("RobustRankAggreg")'
+# R (run in R console)
+install.packages("RobustRankAggreg")
 ```
 
 Individual methods may have additional dependencies (e.g., GNN-SubNet requires PyTorch Geometric; DIABLO and asmbPLS-DA require R packages `mixOmics` and `asmbPLS`). Refer to each method's directory under `code/selected_models/<method_name>/` for details.
