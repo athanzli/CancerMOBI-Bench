@@ -26,7 +26,7 @@ This repository supports two main use cases:
 - [Use Case 1: Benchmark your method](#use-case-1-benchmark-your-method)
   - [Step 1: Implement your method's wrapper function](#step-1-implement-your-methods-wrapper-function)
   - [Step 2: Run the benchmark](#step-2-run-the-benchmark)
-  - [Step 3: View the results](#step-3-view-the-results)
+  - [View the results](#view-the-results)
 - [Use Case 2: Discover candidate biomarkers](#use-case-2-discover-candidate-biomarkers)
   - [Additional dependencies](#additional-dependencies)
   - [Step 1: Run benchmarked methods](#step-1-run-benchmarked-methods)
@@ -265,7 +265,7 @@ The benchmark automatically generates comparison plots saved to `./figures/`. Th
 
 ---
 
-### Step 3: View the results
+### View the results
 
 After running the benchmark, **check the generated comparison plots saved in `./figures/`**. These plots show how your method performs compared to the 20 baseline methods across all evaluation metrics.
 
