@@ -464,8 +464,6 @@ print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from R
 
 ## Citation
 
-Please cite our paper as:
-
 ```bibtex
 @article{li2025benchmarking,
   title={Benchmarking computational methods for multi-omics biomarker discovery in cancer},
