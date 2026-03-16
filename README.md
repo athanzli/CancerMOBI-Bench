@@ -98,10 +98,14 @@ def run_method_custom(
             - Columns: feature names in "MOD@feature" format (e.g., "mRNA@TP53", "DNAm@cg00000029")
         y_train (pd.DataFrame): Training labels.
             - Index: sample IDs
-            - Column: 'label' (for binary classification) or 'T', 'E' (for survival analysis)
-            - For survival tasks, labels are provided as binary (high/low risk) by default,
-              split at the median survival time. You can also set a custom survival time
-              cutoff (e.g., 365 days, 1825 days) via the `surv_op` parameter in `run_benchmark()`.
+            - Column format depends on the `surv_op` parameter in `run_benchmark()`:
+              - `surv_op='binary'` (default): column 'label' with binary values ('long'/'short'),
+                split at the median survival time
+              - `surv_op=<int>` (e.g., 1825): column 'label' with binary values ('long'/'short'),
+                split at the specified number of days
+              - `surv_op=None`: columns 'T' (survival time) and 'E' (event indicator),
+                your method should handle survival data directly
+            - For drug response tasks: column 'label' with binary values
         X_val (pd.DataFrame): Validation features (same format as X_train)
         y_val (pd.DataFrame): Validation labels (same format as y_train)
         X_test (pd.DataFrame): Test features (same format as X_train)
@@ -216,9 +220,9 @@ acc_res, sta_res = run_benchmark(
     # fold_to_run=0,
 
     # Survival label handling - default: 'binary'
-    # By default, survival times are converted to binary labels (long/short based on median).
-    # Set to 'continuous' if your method handles survival analysis directly (with censoring info).
-    surv_op='binary',
+    surv_op='binary',   # Binary labels split at median survival time
+    # surv_op=1825,     # Binary labels split at 1825 days (5 years)
+    # surv_op=None,     # Keep raw T (time) and E (event) columns
 
     # Data scaling method - default: 'standard'
     scaling='standard',  # Z-score normalization

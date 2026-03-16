@@ -232,8 +232,13 @@ def run_benchmark(
                         y_trn = (y_trn['T'] > np.median(y_trn['T'])).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
                         y_val = (y_val['T'] > np.median(y_val['T'])).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
                         y_tst = (y_tst['T'] > np.median(y_tst['T'])).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
+                    elif isinstance(surv_op, int):
+                        cutoff = surv_op
+                        y_trn = (y_trn['T'] > cutoff).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
+                        y_val = (y_val['T'] > cutoff).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
+                        y_tst = (y_tst['T'] > cutoff).map({True: 'long', False: 'short'}).to_frame().rename(columns={'T': 'label'})
                     else:
-                        # keep as is, with censoring info
+                        # surv_op=None: keep T and E columns as is
                         pass
                 else: # for drug response tasks
                     y_trn = pd.DataFrame(index=X_trn.index, columns=['label'], data=y[splits=='trn'])
