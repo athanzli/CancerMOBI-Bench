@@ -12,7 +12,7 @@
 This repository supports two main use cases:
 
 1. **Benchmark your method**: Run your own method and compare its biomarker identification performance against 20 baselines.
-2. **Discover candidate biomarkers**: Run recommended benchmarked methods on custom multi-omics data and aggregate via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
+2. **Discover candidate biomarkers**: Run recommended benchmarked methods on custom multi-omics data and (optionally) aggregate via Robust Rank Aggregation (RRA) to produce a consensus candidate biomarker list.
 
 ![Workflow](figures/fig_workflow.png)
 
