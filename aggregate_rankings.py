@@ -27,7 +27,7 @@ def aggregate_rankings(rankings: list) -> pd.DataFrame:
     R package 'RobustRankAggreg'. Requires rpy2 and the R package installed.
 
     Install R package (if not already):
-        R -e 'install.packages("RobustRankAggreg")'
+        install.packages("RobustRankAggreg")
 
     Args:
         rankings: A list of ranked lists. Each list contains feature names
