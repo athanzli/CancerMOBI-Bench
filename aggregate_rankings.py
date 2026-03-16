@@ -3,11 +3,16 @@ Robust Rank Aggregation (RRA) for combining biomarker rankings from multiple
 methods or folds into a consensus ranking.
 
 Usage:
-    from aggregate_rankings import aggregate_rankings
+    from aggregate_rankings import aggregate_rankings, aggregate_rankings_from_gene_scores
 
-    # rankings: list of lists/arrays, each being a ranked list of feature names
-    #   (higher-ranked features appear earlier)
+    # Option A: from pre-sorted ranked gene lists (strings, most important first)
     consensus = aggregate_rankings([ranking1, ranking2, ranking3])
+
+    # Option B: from gene-level score DataFrames (index = gene names, column = scores)
+    #   NOTE: these should be gene-level scores, NOT raw method output (MOD@molecule).
+    #   Use convert_ft_score_to_gene_level() to convert raw method output first.
+    consensus = aggregate_rankings_from_gene_scores([gene_scores1, gene_scores2])
+
     print(consensus)  # DataFrame with 'name' index and 'p-value' column
 """
 
@@ -74,15 +79,20 @@ def aggregate_rankings(rankings: list) -> pd.DataFrame:
     return consensus_df
 
 
-def aggregate_rankings_from_ft_scores(
-    ft_scores: list,
+def aggregate_rankings_from_gene_scores(
+    gene_scores: list,
     ascending: bool = False,
 ) -> pd.DataFrame:
-    """Convenience wrapper: convert feature score DataFrames to rankings, then run RRA.
+    """Convenience wrapper: convert gene-level score DataFrames to ranked lists, then run RRA.
+
+    Important: the input should be **gene-level** score DataFrames (index = gene names,
+    e.g., 'TP53', 'KRAS'), NOT raw method output (which uses 'MOD@molecule' format,
+    e.g., 'mRNA@TP53', 'DNAm@cg00000029'). If you have raw method output, first convert
+    it to gene-level using `convert_ft_score_to_gene_level()` from `benchmark_pipeline.py`.
 
     Args:
-        ft_scores: List of single-column DataFrames with feature importance scores.
-            Each DataFrame should have feature names as index and scores as values.
+        gene_scores: List of single-column DataFrames with gene-level importance scores.
+            Each DataFrame should have gene names as index and scores as values.
         ascending: If False (default), higher scores = more important (ranked first).
             Set to True if lower scores = more important.
 
@@ -90,11 +100,15 @@ def aggregate_rankings_from_ft_scores(
         Consensus DataFrame with 'p-value' column, same as aggregate_rankings().
     """
     rankings = []
-    for ft in ft_scores:
-        if isinstance(ft, pd.DataFrame):
-            s = ft.iloc[:, 0]
+    for gs in gene_scores:
+        if isinstance(gs, pd.DataFrame):
+            s = gs.iloc[:, 0]
         else:
-            s = ft
+            s = gs
         ranked = s.sort_values(ascending=ascending)
         rankings.append(ranked.index.tolist())
     return aggregate_rankings(rankings)
+
+
+# Backward-compatible alias
+aggregate_rankings_from_ft_scores = aggregate_rankings_from_gene_scores

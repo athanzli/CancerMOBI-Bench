@@ -405,32 +405,40 @@ Label DataFrames (`y_train`, `y_val`, `y_test`) should have a single `'label'` c
 Use `aggregate_rankings.py` to combine rankings from multiple methods or folds into a consensus gene ranking.
 
 ```python
-from aggregate_rankings import aggregate_rankings, aggregate_rankings_from_ft_scores
+from aggregate_rankings import aggregate_rankings, aggregate_rankings_from_gene_scores
 
-# Option A: from ranked lists (feature names ordered by importance)
-consensus = aggregate_rankings([ranking1, ranking2, ranking3])
+# Option A: from ranked gene lists (gene names ordered by importance)
+consensus = aggregate_rankings([gene_ranking1, gene_ranking2, gene_ranking3])
 
-# Option B: directly from feature score DataFrames
-consensus = aggregate_rankings_from_ft_scores([ft_score1, ft_score2, ft_score3])
+# Option B: from gene-level score DataFrames (index = gene names, column = scores)
+consensus = aggregate_rankings_from_gene_scores([gene_scores1, gene_scores2, gene_scores3])
 
 print(consensus.head(10))
 # Returns a DataFrame with 'p-value' column, sorted ascending.
 # Lower p-values = more consistently top-ranked across inputs.
 ```
 
+> **Note**: RRA operates on **gene-level** rankings, not raw method output. Raw method output uses `MOD@molecule` format (e.g., `mRNA@TP53`, `DNAm@cg00000029`). Use `convert_ft_score_to_gene_level()` from `benchmark_pipeline.py` to convert raw method output to gene-level scores before passing to RRA.
+
 #### Full example: run multiple methods and build a consensus panel
 
 ```python
 from run_method import run_method, run_method_rra
-from aggregate_rankings import aggregate_rankings_from_ft_scores
+from benchmark_pipeline import convert_ft_score_to_gene_level
+from aggregate_rankings import aggregate_rankings_from_gene_scores
 
-# Option A: run methods individually, then aggregate
+# Option A: run methods individually, convert to gene-level, then aggregate
 ft_diablo = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
                        X_test=X_tst, y_test=y_tst)
 ft_kegg = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
                      X_val=X_val, y_val=y_val,
                      X_test=X_tst, y_test=y_tst, device='cuda:0')
-consensus = aggregate_rankings_from_ft_scores([ft_diablo, ft_kegg])
+
+# Convert from MOD@molecule to gene-level scores
+gene_diablo = convert_ft_score_to_gene_level(ft_diablo, mode=0)
+gene_kegg = convert_ft_score_to_gene_level(ft_kegg, mode=0)
+
+consensus = aggregate_rankings_from_gene_scores([gene_diablo, gene_kegg])
 print(consensus.head(20))
 
 # Option B: use run_method_rra to run multiple methods and aggregate in one call

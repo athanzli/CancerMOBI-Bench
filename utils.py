@@ -20,6 +20,11 @@ try:
 except:
     raise FileNotFoundError("Please make sure the mapping files for DNAm, miRNA to gene are in the ./data/TCGA/ folder.")
 
+try:
+    P2G = pd.read_csv("./data/TCGA/TCGA_protein2gene_mapping.csv", index_col=0)
+except:
+    P2G = None
+
 def is_sorted(l):
     return all(l[i] <= l[i+1] for i in range(len(l)-1))
 
@@ -1291,3 +1296,127 @@ def plot_benchmark_results(
         plt.show()
     
     plot_mw_pval_boxplots()
+
+
+def modmol_gene_set_tcga(
+    mod_mol_ids: np.ndarray,
+    op: str = 'union',
+    c2g: pd.DataFrame = C2G,
+    p2g: pd.DataFrame = P2G,
+    r2g: pd.DataFrame = R2G
+) -> np.ndarray:
+    """Map multi-omics feature IDs (MOD@molecule) to gene names using TCGA mapping files.
+
+    For gene-level modalities (mRNA, CNV, SNV), the molecule name is already a gene.
+    For DNAm, miRNA, and protein, mapping files are used to convert to gene names.
+
+    Args:
+        mod_mol_ids: 1D array of feature IDs in 'MOD@molecule' format
+            (e.g., ['mRNA@TP53', 'DNAm@cg00000029', 'miRNA@hsa-miR-100-5p']).
+        op: How to combine gene sets across modalities.
+            'union' returns all genes from any modality;
+            'intersection' returns only genes present in all modalities.
+        c2g: CpG-to-gene mapping DataFrame (index: CpG IDs, column 'gene').
+        p2g: Protein-to-gene mapping DataFrame (index: protein IDs, column 'gene').
+        r2g: miRNA-to-gene mapping DataFrame (index: miRNA IDs, column 'gene').
+
+    Returns:
+        1D array of unique gene names.
+    """
+    mappings = {
+        'protein': p2g,
+        'DNAm' : c2g,
+        'miRNA': r2g
+    }
+    gss = []
+    mmdic = mod_mol_dict(mod_mol_ids)
+    for mod in mmdic['mods_uni']:
+        if mod in ['mRNA', 'CNV', 'SNV']:
+            gss.append(mmdic['mols'][mmdic['mods']==mod])
+            continue
+        elif mod in ['DNAm', 'protein', 'miRNA']:
+            mols = mmdic['mols'][mmdic['mods']==mod]
+            try:
+                gss.append(mappings[mod].loc[mols, 'gene'].unique())
+            except:
+                mols = np.intersect1d(mols, mappings[mod].index.values)
+                gss.append(mappings[mod].loc[mols, 'gene'].unique())
+        else: raise ValueError(f"Unexpected mod {mod}")
+    if op == 'union':
+        gs = np.unique(np.concatenate(gss))
+    elif op == 'intersection':
+        gs = np.unique(list(set.intersection(*map(set, gss))))
+    return gs
+
+
+def convert_omics_to_gene_level(
+    data_dict: dict,
+    cover_gset: np.ndarray
+) -> dict:
+    """Convert multi-omics DataFrames from molecule-level to gene-level representation.
+
+    For gene-level modalities (mRNA, CNV, SNV), columns are reindexed to match cover_gset.
+    For miRNA and DNAm, molecule-to-gene mappings are applied (averaging over molecules
+    that map to the same gene). For protein, protein-to-gene mapping is applied similarly.
+
+    Args:
+        data_dict: Dictionary mapping modality name (e.g., 'mRNA', 'DNAm') to a
+            pd.DataFrame with samples as rows and molecule-level features as columns.
+            Column names should NOT have the 'MOD@' prefix.
+        cover_gset: 1D array of gene names that define the output column order.
+
+    Returns:
+        Dictionary with the same keys, but each DataFrame now has gene-level columns
+        aligned to cover_gset.
+    """
+    mods_uni = np.unique(list(data_dict.keys()))
+    assert '@' not in data_dict[mods_uni[0]].columns[0], "Feature names should not have mod@ prefix."
+    assert np.all([(data_dict[mods_uni[0]].index == data_dict[mods_uni[i]].index).all() for i in range(len(mods_uni))]), "Samples in different omics data do not match."
+    assert type(cover_gset) == np.ndarray, "cover_gset should be a np.ndarray."
+    original_index = data_dict[mods_uni[0]].index.values.copy()
+    print("convert molecules to gene-level...")
+    for mod in ['SNV', 'CNV', 'mRNA']:
+        if mod in mods_uni:
+            data_dict[mod] = data_dict[mod].reindex(columns=cover_gset, fill_value=0).astype(np.float32)
+    if 'miRNA' in mods_uni:
+        r2g_filtered = (R2G.loc[R2G['gene'].isin(cover_gset), ['gene', 'miRNA']]
+                            .drop_duplicates())
+        r2g_filtered.index = np.arange(len(r2g_filtered))
+        valid_mirnas = data_dict['miRNA'].columns.intersection(r2g_filtered['miRNA'].unique())
+        assert len(valid_mirnas) > 0
+        dsub = data_dict['miRNA'][valid_mirnas]
+        dsub_stacked = dsub.stack().reset_index()
+        dsub_stacked.columns = ['sample', 'miRNA', 'value']
+        merged = pd.merge(dsub_stacked, r2g_filtered, on='miRNA', how='inner')
+        grouped = merged.groupby(['sample', 'gene'])['value'].mean().unstack(fill_value=0)
+        data_dict['miRNA'] = grouped.reindex(columns=cover_gset, fill_value=0).astype(np.float32)
+    if 'DNAm' in mods_uni:
+        c2g_filtered = (C2G.loc[C2G['gene'].isin(cover_gset), ['gene', 'cpg.1']]
+                            .drop_duplicates()
+                            .rename(columns={'cpg.1': 'cpg'}))
+        c2g_filtered.index = np.arange(len(c2g_filtered))
+        valid_cpgs = data_dict['DNAm'].columns.intersection(c2g_filtered['cpg'].unique())
+        assert len(valid_cpgs) > 0
+        dsub = data_dict['DNAm'][valid_cpgs]
+        dsub_stacked = dsub.stack().reset_index()
+        dsub_stacked.columns = ['sample', 'cpg', 'value']
+        merged = pd.merge(dsub_stacked, c2g_filtered, on='cpg', how='inner')
+        grouped = merged.groupby(['sample', 'gene'])['value'].mean().unstack(fill_value=0)
+        data_dict['DNAm'] = grouped.reindex(columns=cover_gset, fill_value=0).astype(np.float32)
+    if 'protein' in mods_uni:
+        p2g_filtered = (P2G.loc[P2G['gene'].isin(cover_gset), ['gene', 'AGID.1']]
+                            .drop_duplicates()
+                            .rename(columns={'AGID.1': 'AGID'}))
+        p2g_filtered.index = np.arange(len(p2g_filtered))
+        valid_agids = data_dict['protein'].columns.intersection(p2g_filtered['AGID'].unique())
+        assert len(valid_agids) > 0
+        dsub = data_dict['protein'][valid_agids]
+        dsub_stacked = dsub.stack().reset_index()
+        dsub_stacked.columns = ['sample', 'AGID', 'value']
+        merged = pd.merge(dsub_stacked, p2g_filtered, on='AGID', how='inner')
+        grouped = merged.groupby(['sample', 'gene'])['value'].mean().unstack(fill_value=0)
+        data_dict['protein'] = grouped.reindex(columns=cover_gset, fill_value=0).astype(np.float32)
+    for mod in mods_uni:
+        assert (data_dict[mod].columns == cover_gset).all(), f"{mod} columns do not match cover_gset."
+        data_dict[mod] = data_dict[mod].loc[original_index]  # Restore order.
+    return data_dict
