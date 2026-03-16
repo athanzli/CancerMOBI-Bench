@@ -353,7 +353,7 @@ def run_method_rra(
             gene name. Scores are -log10(p-value) from RRA, so higher values
             indicate genes more consistently ranked highly across methods.
     """
-    from aggregate_rankings import aggregate_rankings_from_ft_scores
+    from aggregate_rankings import aggregate_rankings_from_gene_scores
     from benchmark_pipeline import convert_ft_score_to_gene_level
 
     # Method output mode for convert_ft_score_to_gene_level:
@@ -378,7 +378,7 @@ def run_method_rra(
         ft_scores.append(ft_gene)
 
     print(f"\n[run_method_rra] Aggregating {len(ft_scores)} gene-level rankings via RRA...")
-    consensus = aggregate_rankings_from_ft_scores(ft_scores)
+    consensus = aggregate_rankings_from_gene_scores(ft_scores)
 
     # Convert p-values to scores: -log10(p-value), higher = more important
     scores = -np.log10(consensus['p-value'].clip(lower=1e-300))

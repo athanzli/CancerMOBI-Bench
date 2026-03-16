@@ -108,7 +108,3 @@ def aggregate_rankings_from_gene_scores(
         ranked = s.sort_values(ascending=ascending)
         rankings.append(ranked.index.tolist())
     return aggregate_rankings(rankings)
-
-
-# Backward-compatible alias
-aggregate_rankings_from_ft_scores = aggregate_rankings_from_gene_scores
