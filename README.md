@@ -115,7 +115,7 @@ def run_method_custom(
     Returns:
         ft_score (pd.DataFrame): Feature importance scores.
             - Index: feature names (see formats below)
-            - Single column: importance scores (higher = more important)
+            - Single column: importance scores
     """
     # Your method implementation here
     ...
