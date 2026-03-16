@@ -118,34 +118,6 @@ def run_method_custom(
     return ft_score
 ```
 
-#### Input data format
-
-| Omics Type | Feature Level | Example Feature Names |
-|------------|---------------|----------------------|
-| mRNA | Gene-level | `mRNA@TP53`, `mRNA@KRAS`, `mRNA@EGFR` |
-| CNV | Gene-level | `CNV@APOC1`, `CNV@MYC`, `CNV@ERBB2` |
-| SNV | Gene-level | `SNV@TP53`, `SNV@BRAF`, `SNV@PIK3CA` |
-| DNAm | CpG-level | `DNAm@cg00000029`, `DNAm@cg22832044` |
-| miRNA | miRNA-level | `miRNA@hsa-miR-100-5p`, `miRNA@hsa-let-7a-5p` |
-
-#### Output format: `ft_score`
-
-Your function needs to return a pandas DataFrame with:
-- **Index**: Feature names (format depends on `mode`, see below)
-- **Single column**: Importance scores where **higher values indicate greater importance**
-
-> ⚠️ If your method produces scores where sign indicates directionality (not importance), convert to absolute values before returning.
-
-#### The `mode` parameter
-
-The `mode` parameter tells the benchmark how to interpret the **output index of `ft_score`**. Since all evaluations are performed at the gene level, the benchmark uses regulatory mapping files to map CpG sites and miRNAs to their corresponding genes. The `mode` parameter specifies what format your output feature names are in, so the benchmark knows whether this mapping is needed.
-
-| Mode | When to use | `ft_score` index format | Example |
-|------|-------------|------------------------|---------|
-| `0` (default) | Your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level. | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
-| `1` | Your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately). | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
-| `2` | Your method produces one aggregated score per gene, regardless of which omics type it came from. | `gene` | `TP53`, `KRAS`, `EGFR` |
-
 #### Example implementation
 
 ```python
@@ -174,6 +146,34 @@ def run_method_custom(
 
     return ft_score
 ```
+
+#### Input data format
+
+| Omics Type | Feature Level | Example Feature Names |
+|------------|---------------|----------------------|
+| mRNA | Gene-level | `mRNA@TP53`, `mRNA@KRAS`, `mRNA@EGFR` |
+| CNV | Gene-level | `CNV@APOC1`, `CNV@MYC`, `CNV@ERBB2` |
+| SNV | Gene-level | `SNV@TP53`, `SNV@BRAF`, `SNV@PIK3CA` |
+| DNAm | CpG-level | `DNAm@cg00000029`, `DNAm@cg22832044` |
+| miRNA | miRNA-level | `miRNA@hsa-miR-100-5p`, `miRNA@hsa-let-7a-5p` |
+
+#### Output format: `ft_score`
+
+Your function needs to return a pandas DataFrame with:
+- **Index**: Feature names (format depends on `mode`, see below)
+- **Single column**: Importance scores where **higher values indicate greater importance**
+
+> ⚠️ If your method produces scores where sign indicates directionality (not importance), convert to absolute values before returning.
+
+#### The `mode` parameter
+
+The `mode` parameter tells the benchmark how to interpret the **output index of `ft_score`**. Since all evaluations are performed at the gene level, the benchmark uses regulatory mapping files to map CpG sites and miRNAs to their corresponding genes. The `mode` parameter specifies what format your output feature names are in, so the benchmark knows whether this mapping is needed.
+
+| Mode | When to use | `ft_score` index format | Example |
+|------|-------------|------------------------|---------|
+| `0` (default) | Your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level. | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
+| `1` | Your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately). | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
+| `2` | Your method produces one aggregated score per gene, regardless of which omics type it came from. | `gene` | `TP53`, `KRAS`, `EGFR` |
 
 ---
 
