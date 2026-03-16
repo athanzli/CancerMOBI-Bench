@@ -196,9 +196,9 @@ acc_res, sta_res = run_benchmark(
 )
 ```
 
-> 💡 **Recommendation**: We recommend using the **default settings** (all five datasets, all six omics combinations, all five folds) for comprehensive evaluation. You are free to customize these settings if you are only interested in certain task datasets (e.g., survival only), your method is specifically designed for certain omics combinations, or if you need to save time during evaluation.
+> 💡 **Recommendation**: We recommend using the **default settings** (all five datasets, all six omics combinations, all five folds) for comprehensive evaluation. You are free to customize these settings if you are only interested in certain task datasets, your method is specifically designed for certain omics combinations, or if you need to save time.
 
-The benchmark automatically handles train/validation/test splitting, label preparation, and data scaling. Your method receives pre-processed data ready for model training/running.
+The benchmark automatically handles train/validation/test splitting, label preparation, and data scaling (standard scaling by default). Your method receives pre-processed data ready for model training/running.
 
 #### Configuration options
 
@@ -256,7 +256,7 @@ You are free to set `omics_types` to other combinations beyond the default tri-o
 - **Five omics**: `['mRNA', 'DNAm', 'CNV', 'SNV', 'miRNA']`, etc.
 - **Tri-omics without mRNA**: `['DNAm', 'CNV', 'miRNA']`, etc.
 
-In such cases, the generated comparison plots will display your method's results for the specified omics combinations alongside baseline results averaged across all default omics combinations and folds. While you can still get a sense of your method's relative performance, note that these comparisons are not strictly direct since the baselines use different omics combinations.
+In such cases, the generated comparison plots will display your method's results for the specified omics combinations, alongside baseline results averaged across all default tri-omics combinations and folds. While you can still get a sense of your method's relative performance, note that these comparisons are not strictly direct since the baselines use different omics combinations.
 
 #### Understanding the generated plots
 
@@ -344,7 +344,7 @@ pip install rpy2 torch
 install.packages("RobustRankAggreg")
 ```
 
-Individual methods may have additional dependencies (e.g., GNN-SubNet requires PyTorch Geometric; DIABLO and asmbPLS-DA require R packages `mixOmics` and `asmbPLS`). Refer to each method's directory under `code/selected_models/<method_name>/` for details.
+Individual methods may have additional dependencies (e.g., GNN-SubNet requires PyTorch Geometric; DIABLO and asmbPLS-DA require R packages `mixOmics` and `asmbPLS`).
 
 ### Step 1: Run benchmarked methods
 

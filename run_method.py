@@ -73,6 +73,10 @@ _NEEDS_DEVICE = [
     'PNet', 'GNNSubNet',
 ]
 
+# Modality constraints per method
+_EXACTLY_3 = ['GAUDI', 'MCIA', 'asmPLSDA', 'DeepKEGG', 'DPM']
+_TWO_OR_THREE = ['GDF']
+
 ALL_METHODS = _UNSUPERVISED + _TRAIN_TEST + _TRAIN_VAL_TEST + _TRAIN_ONLY_LABELED
 
 
@@ -157,6 +161,26 @@ def run_method(
     elif method_name in _TRAIN_ONLY_LABELED:
         if y_train is None and method_name != 'MOFA':
             raise ValueError(f"{method_name} requires y_train.")
+
+    # Validate number of input modalities
+    from utils import mod_mol_dict
+    mmdic = mod_mol_dict(X_train.columns)
+    n_mods = len(mmdic['mods_uni'])
+    mods_str = ', '.join(mmdic['mods_uni'])
+
+    if method_name in _EXACTLY_3:
+        assert n_mods == 3, (
+            f"{method_name} requires exactly 3 omics types, but got {n_mods}: [{mods_str}]. "
+            f"Please provide a tri-omics combination (e.g., ['mRNA', 'DNAm', 'miRNA'])."
+        )
+    elif method_name in _TWO_OR_THREE:
+        assert n_mods in [2, 3], (
+            f"{method_name} requires 2 or 3 omics types, but got {n_mods}: [{mods_str}]."
+        )
+    else:
+        assert n_mods >= 2, (
+            f"{method_name} requires at least 2 omics types, but got {n_mods}: [{mods_str}]."
+        )
 
     # Ensure cwd is code/ and code/ is in sys.path for model implementations
     # that use relative paths and lazy imports (e.g., from selected_models.X import ...)
