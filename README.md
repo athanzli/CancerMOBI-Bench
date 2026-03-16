@@ -77,13 +77,15 @@ This section guides you through running your method on our benchmark pipeline to
 Create a function that wraps your method and follows the required signature.
 
 ```python
+import pandas as pd
+
 def run_method_custom(
-    X_train,
-    y_train,
-    X_val,
-    y_val,
-    X_test,
-    y_test,
+    X_train: pd.DataFrame,
+    y_train: pd.DataFrame,
+    X_val: pd.DataFrame,
+    y_val: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_test: pd.DataFrame,
     mode: int = 0,  # Required parameter - see "mode" section below
 ):
     """
