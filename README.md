@@ -31,7 +31,6 @@ This repository supports two main use cases:
   - [Additional dependencies](#additional-dependencies)
   - [Step 1: Run benchmarked methods](#step-1-run-benchmarked-methods)
   - [Step 2: Aggregate rankings with RRA](#step-2-aggregate-rankings-with-rra)
-- [Available datasets](#available-datasets)
 - [Evaluation metrics](#evaluation-metrics)
 - [Citation](#citation)
 
@@ -206,7 +205,7 @@ The benchmark automatically handles train/validation/test splitting, label prepa
 acc_res, sta_res = run_benchmark(
     run_method_custom_func=run_method_custom,
 
-    # Select specific dataset(s) - default: all datasets [0,1,2,3,4]
+    # Select specific dataset(s) - default: all 5 datasets (see table below)
     datasets_to_run=[0, 1],  # Run on BRCA and LUAD survival tasks
     # Or use string names:
     # datasets_to_run=['survival_BRCA', 'survival_LUAD'],
@@ -235,6 +234,16 @@ acc_res, sta_res = run_benchmark(
     res_save_path='./result/my_method/',
 )
 ```
+
+#### Available datasets
+
+| Code | Dataset Name | Task Type | Cancer Type |
+|------|--------------|-----------|-------------|
+| `0` | `survival_BRCA` | Survival prediction | Breast Cancer |
+| `1` | `survival_LUAD` | Survival prediction | Lung Adenocarcinoma |
+| `2` | `survival_COADREAD` | Survival prediction | Colorectal Cancer |
+| `3` | `drug_response_Cisplatin-BLCA` | Drug response prediction | Bladder Cancer (Cisplatin) |
+| `4` | `drug_response_Temozolomide-LGG` | Drug response prediction | Low-Grade Glioma (Temozolomide) |
 
 #### Default omics combinations
 
@@ -348,7 +357,7 @@ Individual methods may have additional dependencies (e.g., GNN-SubNet requires P
 
 ### Step 1: Run benchmarked methods
 
-Use `run_method()` from `run_method.py` to run any benchmarked method. It handles all internal dispatching and argument normalization.
+Use `run_method()` from `run_method.py` to run any benchmarked method.
 
 ```python
 from run_method import run_method
@@ -382,23 +391,18 @@ Feature matrices (`X_train`, `X_val`, `X_test`) should be pandas DataFrames with
 
 Label DataFrames (`y_train`, `y_val`, `y_test`) should have a single `'label'` column.
 
-#### Available methods
+#### Method input configurations and recommendations
 
-| Category | Methods | Required inputs |
-|----------|---------|----------------|
-| Unsupervised | `GAUDI`, `MCIA` | `X_train` only |
-| Statistical/ML | `DIABLO`, `asmPLSDA`, `Stabl`, `GDF` | `X_train`, `y_train`, `X_test`, `y_test` |
-| Deep learning | `DeePathNet`, `DeepKEGG`, `MOGLAM`, `CustOmics`, `TMONet`, `GENIUS`, `Pathformer`, `MOGONET`, `MORE`, `MoAGLSA`, `PNet`, `GNNSubNet` | All splits + `device` |
-| Other | `MOFA`, `DPM` | `X_train` (+ `y_train` for DPM) |
+Each method accepts different subsets of the train/val/test splits. For biomarker identification, we recommend maximizing the amount of data used for fitting and scoring. The table below shows the accepted inputs and our recommended argument settings, assuming you have pre-split `train`, `val`, and `test` sets.
 
-> If a DL method requires validation/test data that you don't have, `run_method()` will automatically split the training data or reuse available sets.
+| Method | Accepted inputs | Recommended setting |
+|--------|----------------|---------------------|
+| GAUDI, MCIA, MOFA | `X_train` | `X_train` = train ∪ val ∪ test |
+| DPM | `X_train`, `y_train` | `X_train` = train ∪ val ∪ test, `y_train` = all labels |
+| DIABLO, asmbPLS-DA, Stabl, GDF | `X_train`, `y_train`, `X_test`, `y_test` | All four set to train ∪ val ∪ test (and corresponding labels) |
+| All DL methods | `X_train`, `y_train`, `X_val`, `y_val`, `X_test`, `y_test`, `device` | `X_train`/`X_test` = train ∪ test, `X_val` = val (for early stopping), same for labels |
 
-#### Notes on validation and test sets
-
-- **Validation set** (`X_val`, `y_val`): Used only for early stopping during deep learning model training. It does not affect the final biomarker rankings.
-- **Test set** (`X_test`, `y_test`): Used primarily for biomarker identification (computing feature importance scores). Some methods also report predictive performance metrics on this set.
-
-**Recommendation for biomarker identification**: To maximize the data available for computing feature importance scores, we recommend passing your **training set** as the test set arguments (i.e., `X_test=X_train, y_test=y_train`). Using more samples for biomarker identification can yield more robust importance scores. If you are interested in evaluating predictive performance, pass a held-out validation or test set instead.
+> Methods that only need to fit a model (unsupervised, statistical/ML) benefit from seeing all available samples. For DL methods, a held-out validation set is needed for early stopping during training, so we keep `val` separate but combine `train` and `test` to maximize data for both model fitting and feature importance computation.
 
 ### Step 2: Aggregate rankings with RRA
 
@@ -443,7 +447,7 @@ print(consensus.head(20))
 
 # Option B: use run_method_rra to run multiple methods and aggregate in one call
 ft_score = run_method_rra(
-    ['DIABLO', 'GDF', 'DeepKEGG'],
+    ['DIABLO', 'DeePathNet', 'DeepKEGG'],
     X_train=X_trn, y_train=y_trn,
     X_val=X_val, y_val=y_val,
     X_test=X_tst, y_test=y_tst, device='cuda:0')
@@ -451,18 +455,6 @@ print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from R
 ```
 
 > Note: `run_method_rra()` internally converts each method's output to gene-level scores before aggregation, so the returned DataFrame is indexed by gene name (without modality prefix). If you use `run_method_rra()` as a wrapper for `run_benchmark()`, set `mode=2` in your wrapper function.
-
----
-
-## Available datasets
-
-| Code | Dataset Name | Task Type | Cancer Type |
-|------|--------------|-----------|-------------|
-| `0` | `survival_BRCA` | Survival prediction | Breast Cancer |
-| `1` | `survival_LUAD` | Survival prediction | Lung Adenocarcinoma |
-| `2` | `survival_COADREAD` | Survival prediction | Colorectal Cancer |
-| `3` | `drug_response_Cisplatin-BLCA` | Drug response prediction | Bladder Cancer (Cisplatin) |
-| `4` | `drug_response_Temozolomide-LGG` | Drug response prediction | Low-Grade Glioma (Temozolomide) |
 
 ---
 

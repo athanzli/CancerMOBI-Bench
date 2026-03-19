@@ -75,6 +75,7 @@ _NEEDS_DEVICE = [
 
 # Modality constraints per method
 _EXACTLY_3 = ['GAUDI', 'MCIA', 'asmPLSDA', 'DeepKEGG', 'DPM']
+_THREE_OR_FOUR = ['GENIUS']
 _TWO_OR_THREE = ['GDF']
 
 ALL_METHODS = _UNSUPERVISED + _TRAIN_TEST + _TRAIN_VAL_TEST + _TRAIN_ONLY_LABELED
@@ -173,6 +174,10 @@ def run_method(
             f"{method_name} requires exactly 3 omics types, but got {n_mods}: [{mods_str}]. "
             f"Please provide a tri-omics combination (e.g., ['mRNA', 'DNAm', 'miRNA'])."
         )
+    elif method_name in _THREE_OR_FOUR:
+        assert n_mods in [3, 4], (
+            f"{method_name} requires 3 or 4 omics types, but got {n_mods}: [{mods_str}]."
+        )
     elif method_name in _TWO_OR_THREE:
         assert n_mods in [2, 3], (
             f"{method_name} requires 2 or 3 omics types, but got {n_mods}: [{mods_str}]."
@@ -224,7 +229,7 @@ def _dispatch(method_name, X_train, y_train, X_val, y_val, X_test, y_test, devic
         return ft_score
 
     elif method_name == 'DPM':
-        return run_dpm(model_name='DPM', data=X_train, label=y_train)
+        return run_dpm(data=X_train, label=y_train)
 
     elif method_name == 'DIABLO':
         ft_score, ft_score_rank, perf = run_diablo(
