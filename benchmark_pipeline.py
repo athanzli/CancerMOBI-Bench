@@ -173,15 +173,16 @@ def run_benchmark(
         datasets_to_run = [datasets_to_run]
 
     for dataset in datasets_to_run:
+        dataset_name = DATASET_CODE_MAP[dataset] if isinstance(dataset, int) else dataset
         print("=============================================================")
-        print("Running benchmark on dataset:", DATASET_CODE_MAP[dataset])
+        print("Running benchmark on dataset:", dataset_name)
         print("=============================================================")
         data_path = DATA_PATH_MAP[dataset]
         with open(data_path, 'rb') as f:
             data = pkl.load(f)
-        task = DATASET_CODE_MAP[dataset].split('_')[0]
-        # mkdir for DATASET_CODE_MAP[dataset] if not exists
-        save_dir = os.path.join(res_save_path, DATASET_CODE_MAP[dataset])
+        task = dataset_name.split('_')[0]
+        # mkdir for dataset if not exists
+        save_dir = os.path.join(res_save_path, dataset_name)
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
@@ -299,7 +300,7 @@ def run_benchmark(
                 ft_score.to_csv(save_path)
 
                 omics_comb_str = '+'.join(list(np.sort(omics_comb)))
-                ft_score_res[(DATASET_CODE_MAP[dataset], omics_comb_str, fold)] = ft_score
+                ft_score_res[(dataset_name, omics_comb_str, fold)] = ft_score
 
     ############################### evaluate #########################
     print()
@@ -355,7 +356,7 @@ def run_benchmark(
     score_rbo_res = {}
     score_psd_res = {}
     for dataset in datasets_to_run:
-        task = DATASET_CODE_MAP[dataset]
+        task = DATASET_CODE_MAP[dataset] if isinstance(dataset, int) else dataset
         # get bk for the current task
         bks = gold_bks.loc[gold_bks['Task']==task, 'Gene'].unique().astype(str)
         print()
@@ -397,13 +398,20 @@ def run_benchmark(
                 ranking[mask0] = np.random.permutation(ranking[mask0])
                 rankings.append(ranking)
             # calculate stability metrics
-            score_kendall, score_rbo, score_psd = evaluate_stability(
-                rankings = rankings,
-                bk = bks
-            )
-            score_kendall_res[(task, omics_comb_str)] = score_kendall
-            score_rbo_res[(task, omics_comb_str)] = score_rbo
-            score_psd_res[(task, omics_comb_str)] = score_psd
+            if len(rankings) < 2:
+                print(f"Warning: Only {len(rankings)} fold(s) available for task {task}, "
+                      f"omics {omics_comb_str}. Stability evaluation requires at least 2 folds. Skipping.")
+                score_kendall_res[(task, omics_comb_str)] = np.nan
+                score_rbo_res[(task, omics_comb_str)] = np.nan
+                score_psd_res[(task, omics_comb_str)] = np.nan
+            else:
+                score_kendall, score_rbo, score_psd = evaluate_stability(
+                    rankings = rankings,
+                    bk = bks
+                )
+                score_kendall_res[(task, omics_comb_str)] = score_kendall
+                score_rbo_res[(task, omics_comb_str)] = score_rbo
+                score_psd_res[(task, omics_comb_str)] = score_psd
     sta_res['Kendall_tau'] = score_kendall_res
     sta_res['RBO'] = score_rbo_res
     sta_res['PSD'] = score_psd_res
