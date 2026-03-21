@@ -353,7 +353,7 @@ This use case provides a Python interface (`run_method.py`) to run any of the 20
 Running the benchmarked methods requires their respective dependencies. For RRA aggregation, you also need the R package `RobustRankAggreg`:
 
 ```r
-# R (run in R console)
+# R
 install.packages("RobustRankAggreg")
 ```
 
@@ -364,8 +364,6 @@ install.packages("RobustRankAggreg")
 | All DL methods | `torch` (+ CUDA for GPU) |
 | DeePathNet, Pathformer, CustOmics | `shap` |
 | DeepKEGG, PNet, GENIUS | `captum` |
-| GNN-SubNet | `torch-geometric`, `torch-scatter`, `torch-sparse`, `networkx` |
-| MOFA | `mofapy2`, `mofax` |
 | Stabl | Install from bundled source: `pip install ./code/selected_models/Stabl/` |
 
 **Method-specific R packages** (install via `install.packages()` or Bioconductor):
@@ -374,9 +372,7 @@ install.packages("RobustRankAggreg")
 |--------|------------|
 | DIABLO | `mixOmics` (Bioconductor), `caret` |
 | GAUDI | `gaudi` |
-| MCIA | `omicade4` (Bioconductor) |
 | GDF | `ranger`, `igraph`, `DFNET`, `ModelMetrics`, `PRROC` |
-| DPM | `ActivePathways` |
 | asmPLSDA | `asmbPLS` |
 
 ### Step 1: Run benchmarked methods
