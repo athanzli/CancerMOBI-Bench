@@ -427,34 +427,32 @@ Each method accepts different subsets of the train/val/test splits. For biomarke
 
 > Methods that only need to fit a model (unsupervised, statistical/ML) benefit from seeing all available samples. For DL methods, a held-out validation set is needed for early stopping during training, so we keep `val` separate but combine `train` and `test` to maximize data for both model fitting and feature importance computation.
 
-### Step 2: Aggregate rankings with RRA
+### Step 2: Run multiple methods and build a consensus panel
 
-Use `aggregate_rankings.py` to combine rankings from multiple methods or folds into a consensus gene ranking.
+Use `run_method_rra()` to run multiple methods and aggregate their rankings into a consensus gene ranking via Robust Rank Aggregation (RRA) — all in one call:
 
 ```python
-from aggregate_rankings import aggregate_rankings, aggregate_rankings_from_gene_scores
+from run_method import run_method_rra
 
-# Option A: from ranked gene lists (gene names ordered by importance)
-consensus = aggregate_rankings([gene_ranking1, gene_ranking2, gene_ranking3])
-
-# Option B: from gene-level score DataFrames (index = gene names, column = scores)
-consensus = aggregate_rankings_from_gene_scores([gene_scores1, gene_scores2, gene_scores3])
-
-print(consensus.head(10))
-# Returns a DataFrame with 'p-value' column, sorted ascending.
-# Lower p-values = more consistently top-ranked across inputs.
+consensus = run_method_rra(
+    ['DIABLO', 'DeePathNet', 'DeepKEGG'],
+    X_train=X_trn, y_train=y_trn,
+    X_val=X_val, y_val=y_val,
+    X_test=X_tst, y_test=y_tst, device='cuda:0')
+print(consensus.head(20))  # DataFrame with 'score' column (-log10 p-value from RRA)
 ```
 
-> **Note**: RRA operates on **gene-level** rankings, not raw method output. Raw method output uses `MOD@molecule` format (e.g., `mRNA@TP53`, `DNAm@cg00000029`). Use `convert_ft_score_to_gene_level()` from `benchmark_pipeline.py` to convert raw method output to gene-level scores before passing to RRA.
+`run_method_rra()` internally runs each method, converts outputs to gene-level scores, and aggregates via RRA. The returned DataFrame is indexed by gene name (without modality prefix), with higher scores indicating more consistently top-ranked genes. If you use `run_method_rra()` as a wrapper for `run_benchmark()`, set `mode=2` in your wrapper function.
 
-#### Full example: run multiple methods and build a consensus panel
+#### Advanced: run methods individually
+
+If you need more control (e.g., custom gene-level conversion or method-specific parameters), you can run methods individually and aggregate manually:
 
 ```python
-from run_method import run_method, run_method_rra
+from run_method import run_method
 from benchmark_pipeline import convert_ft_score_to_gene_level
 from aggregate_rankings import aggregate_rankings_from_gene_scores
 
-# Option A: run methods individually, convert to gene-level, then aggregate
 # Note: use .copy() because some methods (e.g., DeePathNet) modify DataFrames in-place
 ft_diablo = run_method('DIABLO', X_train=X_trn.copy(), y_train=y_trn.copy(),
                        X_test=X_tst.copy(), y_test=y_tst.copy())
@@ -472,17 +470,9 @@ gene_kegg = convert_ft_score_to_gene_level(ft_kegg, mode=0)
 
 consensus = aggregate_rankings_from_gene_scores([gene_diablo, gene_deepathnet, gene_kegg])
 print(consensus.head(20))
-
-# Option B: use run_method_rra to run multiple methods and aggregate in one call
-ft_score = run_method_rra(
-    ['DIABLO', 'DeePathNet', 'DeepKEGG'],
-    X_train=X_trn, y_train=y_trn,
-    X_val=X_val, y_val=y_val,
-    X_test=X_tst, y_test=y_tst, device='cuda:0')
-print(ft_score.head(20))  # DataFrame with 'score' column (-log10 p-value from RRA)
 ```
 
-> Note: `run_method_rra()` internally converts each method's output to gene-level scores before aggregation, so the returned DataFrame is indexed by gene name (without modality prefix). If you use `run_method_rra()` as a wrapper for `run_benchmark()`, set `mode=2` in your wrapper function.
+> **Note**: `convert_ft_score_to_gene_level()` converts raw method output (`MOD@molecule` format) to gene-level scores. The `mode` parameter depends on the method's output format: `mode=0` for most methods (molecule-level output), `mode=1` for methods that output `MOD@gene` format (e.g., DeePathNet, GDF).
 
 ---
 
