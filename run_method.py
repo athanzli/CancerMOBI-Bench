@@ -389,15 +389,18 @@ def run_method_rra(
     #   mode 0: molecule-level (most methods - CpG/miRNA/gene names with MOD@ prefix)
     #   mode 1: gene-level with MOD@ prefix (GDF converts CpGs/miRNAs to genes internally)
     #   mode 2: gene-level without prefix (DPM strips MOD@ prefix internally)
-    _METHOD_MODE = {'GDF': 1, 'DPM': 2}
+    _METHOD_MODE = {'GDF': 1, 'DeePathNet': 1, 'DPM': 2}
 
     ft_scores = []
     for method_name in method_names:
         print(f"\n[run_method_rra] Running {method_name}...")
         ft = run_method(
-            method_name, X_train=X_train, y_train=y_train,
-            X_val=X_val, y_val=y_val,
-            X_test=X_test, y_test=y_test, device=device,
+            method_name, X_train=X_train.copy(), y_train=y_train.copy(),
+            X_val=X_val.copy() if X_val is not None else None,
+            y_val=y_val.copy() if y_val is not None else None,
+            X_test=X_test.copy() if X_test is not None else None,
+            y_test=y_test.copy() if y_test is not None else None,
+            device=device,
         )
         print(f"[run_method_rra] {method_name} done. Output shape: {ft.shape}")
         # Convert to gene-level so all methods use the same feature space

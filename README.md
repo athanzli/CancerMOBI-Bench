@@ -57,23 +57,33 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 ### Dependencies
 
 - Python 3.10+ recommended
+- R 4.0+ (required for several benchmarked methods and RRA aggregation)
+
+**Core packages** (required for Use Case 1: benchmarking):
 
 ```bash
-python -m pip install numpy pandas scipy scikit-learn matplotlib seaborn rbo
+pip install numpy pandas scipy scikit-learn matplotlib seaborn rbo tqdm
 ```
+
+**R bridge** (required for RRA aggregation in Use Case 2, and for R-based methods such as DIABLO, GAUDI, MCIA, GDF, DPM, asmPLSDA):
+
+```bash
+pip install "rpy2>=3.5.5"
+```
+
+> **Note**: `rpy2>=3.5.5` is required for compatibility with pandas ≥2.0. Earlier versions (e.g., 3.5.3) use `iteritems()`, which was removed in pandas 2.0.
 
 ---
 
 ## Use Case 1: Benchmark your method
 
-This section guides you through running your method on our benchmark pipeline to compare its biomarker identification performance against 20 baselines. The process consists of two main steps:
-
-1. Implement a wrapper function for your method
-2. Run the benchmark using the provided pipeline
+This section guides you through running your method on our benchmark pipeline to compare its biomarker identification performance against 20 baselines.
 
 ### Step 1: Implement your method's wrapper function
 
 Create a function that wraps your method and follows the required signature.
+
+> **Note**: The pipeline provides pre-split train/val/test data, but you are not required to use all of them. For example, if your method is unsupervised, you may only use the training set and ignore validation/test data entirely; if yours is a deep learning method with post hoc feature attribution, you can also utilize more data by, for instance, using train+test for mdoel training, 
 
 ```python
 import pandas as pd
@@ -89,9 +99,6 @@ def run_method_custom(
 ):
     """
     A custom function to run your method for benchmarking.
-    The pipeline provides pre-split train/val/test data, but you are not
-    required to use all of them. For example, you may only use the training
-    set if your method does not need validation or test data.
 
     Args:
         X_train (pd.DataFrame): Training features.
@@ -339,21 +346,38 @@ figures/                                    # Comparison plots
 
 ![Method Selection Guide](figures/fig_method_selection_guide.png)
 
-This repository provides a unified Python interface (`run_method.py`) to run any of the 20 benchmarked methods on any multi-omics data, plus an aggregation utility (`aggregate_rankings.py`) to combine rankings via Robust Rank Aggregation (RRA) into a consensus candidate biomarker list.
+This use case provides a Python interface (`run_method.py`) to run any of the 20 benchmarked methods on any multi-omics data, plus an aggregation utility (`aggregate_rankings.py`) to combine rankings via Robust Rank Aggregation (RRA) into a consensus candidate biomarker list.
 
 ### Additional dependencies
 
-Running the benchmarked methods requires their respective dependencies (e.g., PyTorch, rpy2). For RRA, you also need R with the `RobustRankAggreg` package:
+Running the benchmarked methods requires their respective dependencies. For RRA aggregation, you also need the R package `RobustRankAggreg`:
 
-```bash
-# Python
-pip install rpy2 torch
-
+```r
 # R (run in R console)
 install.packages("RobustRankAggreg")
 ```
 
-Individual methods may have additional dependencies (e.g., GNN-SubNet requires PyTorch Geometric; DIABLO and asmbPLS-DA require R packages `mixOmics` and `asmbPLS`).
+**Method-specific Python dependencies:**
+
+| Method | Python packages |
+|--------|----------------|
+| All DL methods | `torch` (+ CUDA for GPU) |
+| DeePathNet, Pathformer, CustOmics | `shap` |
+| DeepKEGG, PNet, GENIUS | `captum` |
+| GNN-SubNet | `torch-geometric`, `torch-scatter`, `torch-sparse`, `networkx` |
+| MOFA | `mofapy2`, `mofax` |
+| Stabl | Install from bundled source: `pip install ./code/selected_models/Stabl/` |
+
+**Method-specific R packages** (install via `install.packages()` or Bioconductor):
+
+| Method | R packages |
+|--------|------------|
+| DIABLO | `mixOmics` (Bioconductor), `caret` |
+| GAUDI | `gaudi` |
+| MCIA | `omicade4` (Bioconductor) |
+| GDF | `ranger`, `igraph`, `DFNET`, `ModelMetrics`, `PRROC` |
+| DPM | `ActivePathways` |
+| asmPLSDA | `asmbPLS` |
 
 ### Step 1: Run benchmarked methods
 
@@ -370,6 +394,9 @@ ft_score = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
                       X_test=X_tst, y_test=y_tst)
 
 # Deep learning method (needs train + val + test + GPU)
+ft_score = run_method('DeePathNet', X_train=X_trn, y_train=y_trn,
+                      X_val=X_val, y_val=y_val,
+                      X_test=X_tst, y_test=y_tst, device='cuda:0')
 ft_score = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
                       X_val=X_val, y_val=y_val,
                       X_test=X_tst, y_test=y_tst, device='cuda:0')
@@ -432,17 +459,22 @@ from benchmark_pipeline import convert_ft_score_to_gene_level
 from aggregate_rankings import aggregate_rankings_from_gene_scores
 
 # Option A: run methods individually, convert to gene-level, then aggregate
-ft_diablo = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
-                       X_test=X_tst, y_test=y_tst)
-ft_kegg = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
-                     X_val=X_val, y_val=y_val,
-                     X_test=X_tst, y_test=y_tst, device='cuda:0')
+# Note: use .copy() because some methods (e.g., DeePathNet) modify DataFrames in-place
+ft_diablo = run_method('DIABLO', X_train=X_trn.copy(), y_train=y_trn.copy(),
+                       X_test=X_tst.copy(), y_test=y_tst.copy())
+ft_deepathnet = run_method('DeePathNet', X_train=X_trn.copy(), y_train=y_trn.copy(),
+                           X_val=X_val.copy(), y_val=y_val.copy(),
+                           X_test=X_tst.copy(), y_test=y_tst.copy(), device='cuda:0')
+ft_kegg = run_method('DeepKEGG', X_train=X_trn.copy(), y_train=y_trn.copy(),
+                     X_val=X_val.copy(), y_val=y_val.copy(),
+                     X_test=X_tst.copy(), y_test=y_tst.copy(), device='cuda:0')
 
 # Convert from MOD@molecule to gene-level scores
 gene_diablo = convert_ft_score_to_gene_level(ft_diablo, mode=0)
+gene_deepathnet = convert_ft_score_to_gene_level(ft_deepathnet, mode=1)  # DeePathNet outputs MOD@gene
 gene_kegg = convert_ft_score_to_gene_level(ft_kegg, mode=0)
 
-consensus = aggregate_rankings_from_gene_scores([gene_diablo, gene_kegg])
+consensus = aggregate_rankings_from_gene_scores([gene_diablo, gene_deepathnet, gene_kegg])
 print(consensus.head(20))
 
 # Option B: use run_method_rra to run multiple methods and aggregate in one call
