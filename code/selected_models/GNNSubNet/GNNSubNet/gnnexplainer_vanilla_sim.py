@@ -111,7 +111,7 @@ for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
         counter += 1
 
 accuracy = counter/len(true_class_array) * 100 
-print("Accuracy: {}%".format(accuracy))
+# print("Accuracy: {}%".format(accuracy))
 print("Test loss {}".format(test_loss))
 
 

@@ -412,8 +412,8 @@ def train_classification(dataloader, model, epoch, cancer, fold, optimizer, omic
         recall = recall_score(all_labels, all_predictions, average='macro')
         f1 = f1_score(all_labels, all_predictions, average='macro')
 
-        print('fold {} train:, Loss: {:.4f} Acc: {:.4f} Precision: {:.4f} Recall: {:.4f} F1: {:.4f}'
-              .format(fold, total_loss / len(dataloader), acc, precision, recall, f1))
+        # print('fold {} train:, Loss: {:.4f} Acc: {:.4f} Precision: {:.4f} Recall: {:.4f} F1: {:.4f}'
+        #       .format(fold, total_loss / len(dataloader), acc, precision, recall, f1))
         all_labels = torch.Tensor(all_labels)
         torch.save(all_labels, f'train_pancancer_fold{fold}_label.pt')
     torch.save(pancancer_embedding, f'train_pancancer_fold{fold}_embedding.pt')
@@ -459,8 +459,8 @@ def test_classification(dataloader, model, epoch, cancer, fold, optimizer, omics
             recall = recall_score(all_labels, all_predictions, average='macro')
             f1 = f1_score(all_labels, all_predictions, average='macro')
 
-            print('fold {} test:, Loss: {:.4f} Acc: {:.4f} Precision: {:.4f} Recall: {:.4f} F1: {:.4f}'.
-                  format(fold, total_loss / len(dataloader), acc, precision, recall, f1))
+            # print('fold {} test:, Loss: {:.4f} Acc: {:.4f} Precision: {:.4f} Recall: {:.4f} F1: {:.4f}'.
+            #       format(fold, total_loss / len(dataloader), acc, precision, recall, f1))
             all_labels = torch.Tensor(all_labels)
 
             torch.save(all_labels, f'test_pancancer_fold{fold}_label.pt')

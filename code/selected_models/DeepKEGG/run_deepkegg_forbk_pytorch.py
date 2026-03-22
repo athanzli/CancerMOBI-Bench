@@ -620,7 +620,7 @@ def run_deepkegg(
             accuracy = accuracy_score(y_labels, y_preds)
 
         if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(f'Epoch [{epoch+1}/{epochs}], Train avg. Loss: {avg_loss:.4f}, Val Loss: {loss_val:.4f}, val_accuracy: {accuracy:.4f}')
+            # print(f'Epoch [{epoch+1}/{epochs}], Train avg. Loss: {avg_loss:.4f}, Val Loss: {loss_val:.4f}, val_accuracy: {accuracy:.4f}')
 
     print(f"DeepKEGG Training time for {epoch} epochs: {training_time:.2f} seconds.")
     
@@ -663,25 +663,25 @@ def run_deepkegg(
         y_proba = y_probs[:, 1]
         roc_auc = roc_auc_score(y_true, y_proba)
         aucpr = average_precision_score(y_true, y_proba)
-        print(f"AUC-ROC:        {roc_auc:.4f}")
-        print(f"AUCPR:          {aucpr:.4f}")
+        # print(f"AUC-ROC:        {roc_auc:.4f}")
+        # print(f"AUCPR:          {aucpr:.4f}")
         recall = recall_score(y_true, y_pred)
         precision = precision_score(y_true, y_pred)
         f1 = f1_score(y_true, y_pred)
-        print(f"F1:  {f1:.4f}")
-        print(f"Precision:  {precision:.4f}")
-        print(f"Recall:     {recall:.4f}")
+        # print(f"F1:  {f1:.4f}")
+        # print(f"Precision:  {precision:.4f}")
+        # print(f"Recall:     {recall:.4f}")
         mcc = matthews_corrcoef(y_true, y_pred)
-        print(f"MCC:          {mcc:.4f}")
+        # print(f"MCC:          {mcc:.4f}")
         balanced_acc = balanced_accuracy_score(y_true, y_pred)
-        print(f"Balanced Acc: {balanced_acc:.4f}")
+        # print(f"Balanced Acc: {balanced_acc:.4f}")
     else:
         f1_weighted = f1_score(y_true, y_pred, average='weighted')
         f1_macro = f1_score(y_true, y_pred, average='macro')
-        print(f"F1-weighted:    {f1_weighted:.4f}")
-        print(f"F1-macro:       {f1_macro:.4f}")
+        # print(f"F1-weighted:    {f1_weighted:.4f}")
+        # print(f"F1-macro:       {f1_macro:.4f}")
     acc = accuracy_score(y_true, y_pred)
-    print(f"Accuracy:       {acc:.4f}")
+    # print(f"Accuracy:       {acc:.4f}")
     perf = {
         'acc': acc,
         'f1': f1,

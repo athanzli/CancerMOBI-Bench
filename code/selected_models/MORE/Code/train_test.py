@@ -258,13 +258,15 @@ def train_test(
             te_prob = test_epoch(num_class, data_te_list, adj_te_list, trte_idx["te"], model_dict)
             print("\nTest: Epoch {:d}".format(epoch))
             if num_class == 2:
-                print("Test ACC: {:.3f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                print("Test F1: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                print("Test AUC: {:.3f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+                # print("Test ACC: {:.3f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                # print("Test F1: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                # print("Test AUC: {:.3f}".format(roc_auc_score(labels_trte[trte_idx["te"]], te_prob[:,1])))
+                pass
             else:
-                print("Test ACC: {:.3f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
-                print("Test F1 weighted: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
-                print("Test F1 macro: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
+                # print("Test ACC: {:.3f}".format(accuracy_score(labels_trte[trte_idx["te"]], te_prob.argmax(1))))
+                # print("Test F1 weighted: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')))
+                # print("Test F1 macro: {:.3f}".format(f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')))
+                pass
             print()
     
     print(f"MORE Training time for {epoch} epochs: {total_train_time:.2f} seconds.")
@@ -333,18 +335,18 @@ def train_test(
         f1 = f1_score(y_true, y_pred)
         mcc = matthews_corrcoef(y_true, y_pred)
         balanced_acc = balanced_accuracy_score(y_true, y_pred)
-        print(f"AUC-ROC:        {roc_auc:.4f}")
-        print(f"AUCPR:          {aucpr:.4f}")
-        print(f"F1:  {f1:.4f}")
-        print(f"Precision:  {precision:.4f}")
-        print(f"Recall:     {recall:.4f}")
+        # print(f"AUC-ROC:        {roc_auc:.4f}")
+        # print(f"AUCPR:          {aucpr:.4f}")
+        # print(f"F1:  {f1:.4f}")
+        # print(f"Precision:  {precision:.4f}")
+        # print(f"Recall:     {recall:.4f}")
     else:
         f1_weighted = f1_score(y_true, y_pred, average='weighted')
         f1_macro = f1_score(y_true, y_pred, average='macro')
-        print(f"F1-weighted:    {f1_weighted:.4f}")
-        print(f"F1-macro:       {f1_macro:.4f}")
+        # print(f"F1-weighted:    {f1_weighted:.4f}")
+        # print(f"F1-macro:       {f1_macro:.4f}")
     acc = accuracy_score(y_true, y_pred)
-    print(f"Accuracy:       {acc:.4f}")
+    # print(f"Accuracy:       {acc:.4f}")
     perf = {
         'acc': acc,
         'f1': f1,

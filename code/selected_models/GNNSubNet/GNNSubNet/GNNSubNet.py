@@ -429,25 +429,25 @@ class GNNSubNet(object):
             y_proba = y_prob[:, -1].to('cpu').detach().numpy()
             roc_auc = roc_auc_score(y_true, y_proba)
             aucpr = average_precision_score(y_true, y_proba)
-            print(f"AUC-ROC:        {roc_auc:.4f}")
-            print(f"AUCPR:          {aucpr:.4f}")
+            # print(f"AUC-ROC:        {roc_auc:.4f}")
+            # print(f"AUCPR:          {aucpr:.4f}")
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
             f1 = f1_score(y_true, y_pred)
-            print(f"F1:  {f1:.4f}")
-            print(f"Precision:  {precision:.4f}")
-            print(f"Recall:     {recall:.4f}")
+            # print(f"F1:  {f1:.4f}")
+            # print(f"Precision:  {precision:.4f}")
+            # print(f"Recall:     {recall:.4f}")
             mcc = matthews_corrcoef(y_true, y_pred)
-            print(f"MCC: {mcc:.4f}")
+            # print(f"MCC: {mcc:.4f}")
             balanced_acc = balanced_accuracy_score(y_true, y_pred)
-            print(f"Balanced accuracy: {balanced_acc:.4f}")
+            # print(f"Balanced accuracy: {balanced_acc:.4f}")
         else:
             f1_weighted = f1_score(y_true, y_pred, average='weighted')
             f1_macro = f1_score(y_true, y_pred, average='macro')
-            print(f"F1-weighted:    {f1_weighted:.4f}")
-            print(f"F1-macro:       {f1_macro:.4f}")
+            # print(f"F1-weighted:    {f1_weighted:.4f}")
+            # print(f"F1-macro:       {f1_macro:.4f}")
         acc = accuracy_score(y_true, y_pred)
-        print(f"Accuracy:       {acc:.4f}")
+        # print(f"Accuracy:       {acc:.4f}")
         perf = {
             'acc': acc,
             'f1': f1,
@@ -605,8 +605,8 @@ class GNNSubNet(object):
                 counter += 1
 
         accuracy = counter/len(true_class_array) * 100
-        print("Accuracy: {}%".format(accuracy))
-        
+        # print("Accuracy: {}%".format(accuracy))
+
         self.predictions_test = predicted_class_array
         self.true_class_test  = true_class_array
         self.accuracy_test = accuracy

@@ -444,7 +444,7 @@ def run_pathformer(
                 # output
                 print(f' ==  Epoch: {epoch} | Training Loss: {epoch_loss:.6f}')
                 print('ACC_train:', ACC_train)
-                print('auc_train:', AUC_train)
+                # print('auc_train:', AUC_train)
                 print('f1_weighted_train:', f1_weighted_train)
                 print('f1_macro_train:', f1_macro_train)
                 print('lr:', lr_epoch)
@@ -477,7 +477,7 @@ def run_pathformer(
                 print()
                 print(f'val Loss: {val_loss:.6f}')
                 print('ACC_val:', ACC_val)
-                print('auc_val:', AUC_val)
+                # print('auc_val:', AUC_val)
                 print('f1_weighted_val:', f1_weighted_val)
                 print('f1_macro_val:', f1_macro_val)
 
@@ -537,12 +537,12 @@ def run_pathformer(
             f1 = f1_score(y_true, y_pred)
             mcc = matthews_corrcoef(y_true, y_pred)
             balanced_acc = balanced_accuracy_score(y_true, y_pred)
-            print(f"AUC-ROC:        {roc_auc:.4f}")
-            print(f"AUCPR:          {aucpr:.4f}")
-            print(f"F1:  {f1:.4f}")
-            print(f"Precision:  {precision:.4f}")
-            print(f"Recall:     {recall:.4f}")
-            print(f"MCC: {mcc:.4f}")
+            # print(f"AUC-ROC:        {roc_auc:.4f}")
+            # print(f"AUCPR:          {aucpr:.4f}")
+            # print(f"F1:  {f1:.4f}")
+            # print(f"Precision:  {precision:.4f}")
+            # print(f"Recall:     {recall:.4f}")
+            # print(f"MCC: {mcc:.4f}")
             perf = {
                 'acc': acc,
                 'f1': f1,
@@ -690,10 +690,10 @@ def run_pathformer(
             acc = None
             f1_weighted = f1_score(y_true, y_pred, average='weighted')
             f1_macro = f1_score(y_true, y_pred, average='macro')
-            print(f"F1-weighted:    {f1_weighted:.4f}")
-            print(f"F1-macro:       {f1_macro:.4f}")
+            # print(f"F1-weighted:    {f1_weighted:.4f}")
+            # print(f"F1-macro:       {f1_macro:.4f}")
             acc = accuracy_score(y_true, y_pred)
-            print(f"Accuracy:       {acc:.4f}")
+            # print(f"Accuracy:       {acc:.4f}")
             perf = {
                 'acc': acc,
                 'f1': f1,

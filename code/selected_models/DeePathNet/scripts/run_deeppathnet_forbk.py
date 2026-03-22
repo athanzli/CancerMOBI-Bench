@@ -233,6 +233,14 @@ def run_deepathnet(
     # config_file = '/home/athan.li/eval_bk/code/selected_models/DeePathNet/configs/tcga_all_cancer_types/mutation_cnv_rna/deepathnet_mutation_cnv_rna_example.json'
     configs = json.load(open(config_file, "r"))
 
+    # Avoid modifying caller's DataFrames in-place
+    data_trn = data_trn.copy()
+    data_val = data_val.copy()
+    data_tst = data_tst.copy()
+    label_trn = label_trn.copy()
+    label_val = label_val.copy()
+    label_tst = label_tst.copy()
+
     seed = configs["seed"]
     torch.manual_seed(seed)
 
@@ -416,25 +424,25 @@ def run_deepathnet(
         y_proba = softmax(outputs, axis=1)[:, -1]
         roc_auc = roc_auc_score(y_true, y_proba)
         aucpr = average_precision_score(y_true, y_proba)
-        print(f"AUC-ROC:        {roc_auc:.4f}")
-        print(f"AUCPR:          {aucpr:.4f}")
+        # print(f"AUC-ROC:        {roc_auc:.4f}")
+        # print(f"AUCPR:          {aucpr:.4f}")
         recall = recall_score(y_true, y_pred)
         precision = precision_score(y_true, y_pred)
         f1 = f1_score(y_true, y_pred)
-        print(f"F1:  {f1:.4f}")
-        print(f"Precision:  {precision:.4f}")
-        print(f"Recall:     {recall:.4f}")
+        # print(f"F1:  {f1:.4f}")
+        # print(f"Precision:  {precision:.4f}")
+        # print(f"Recall:     {recall:.4f}")
         mcc = matthews_corrcoef(y_true, y_pred)
-        print(f"MCC: {mcc:.4f}")
+        # print(f"MCC: {mcc:.4f}")
         balanced_acc = balanced_accuracy_score(y_true, y_pred)
-        print(f"Balanced Accuracy: {balanced_acc:.4f}")
+        # print(f"Balanced Accuracy: {balanced_acc:.4f}")
     else:
         f1_weighted = f1_score(y_true, y_pred, average='weighted')
         f1_macro = f1_score(y_true, y_pred, average='macro')
-        print(f"F1-weighted:    {f1_weighted:.4f}")
-        print(f"F1-macro:       {f1_macro:.4f}")
+        # print(f"F1-weighted:    {f1_weighted:.4f}")
+        # print(f"F1-macro:       {f1_macro:.4f}")
     acc = accuracy_score(y_true, y_pred)
-    print(f"Accuracy:       {acc:.4f}")
+    # print(f"Accuracy:       {acc:.4f}")
     perf = {
         'acc': acc,
         'f1': f1,

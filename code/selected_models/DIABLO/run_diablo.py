@@ -204,14 +204,14 @@ def run_diablo(
     f1        = f1_score(y_true, y_pred, pos_label=pos_label)
     mcc = matthews_corrcoef(y_true, y_pred)
     balanced_acc = balanced_accuracy_score(y_true, y_pred)
-    print(f"AUC-ROC:        {auroc:.4f}")
-    print(f"AUCPR:          {aupr:.4f}")
-    print(f"F1:  {f1:.4f}")
-    print(f"Precision:  {precision:.4f}")
-    print(f"Recall:     {recall:.4f}")
-    print(f"MCC: {mcc:.4f}")
+    # print(f"AUC-ROC:        {auroc:.4f}")
+    # print(f"AUCPR:          {aupr:.4f}")
+    # print(f"F1:  {f1:.4f}")
+    # print(f"Precision:  {precision:.4f}")
+    # print(f"Recall:     {recall:.4f}")
+    # print(f"MCC: {mcc:.4f}")
     acc = accuracy_score(y_true, y_pred)
-    print(f"Accuracy:       {acc:.4f}")
+    # print(f"Accuracy:       {acc:.4f}")
     perf = {
         'acc': acc,
         'f1': f1,
@@ -226,7 +226,7 @@ def run_diablo(
         'auroc':auroc,
         'aupr':aupr
     }
-    print("Performance:", perf)
+    # print("Performance:", perf)
 
     return ft_score, ft_score_rank, perf # NOTE
 

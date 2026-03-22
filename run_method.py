@@ -235,13 +235,19 @@ def _dispatch(method_name, X_train, y_train, X_val, y_val, X_test, y_test, devic
         ft_score, ft_score_rank, perf = run_diablo(
             data_trn=X_train, label_trn=y_train,
             data_tst=X_test, label_tst=y_test)
-        return ft_score_rank  # ranked version
+        # Convert ranks to scores (higher = more important) so downstream
+        # aggregation (max pooling, descending sort in RRA) works correctly.
+        max_rank = ft_score_rank['rank'].max()
+        return pd.DataFrame({'score': max_rank + 1 - ft_score_rank['rank']},
+                            index=ft_score_rank.index)
 
     elif method_name == 'asmPLSDA':
         ft_score, ft_score_rank, perf = run_asmplsda(
             data_trn=X_train, label_trn=y_train,
             data_tst=X_test, label_tst=y_test)
-        return ft_score_rank
+        max_rank = ft_score_rank['score'].max()
+        return pd.DataFrame({'score': max_rank + 1 - ft_score_rank['score']},
+                            index=ft_score_rank.index)
 
     elif method_name == 'Stabl':
         # NOTE: Stabl has anomalous arg order (data_trn, data_tst, label_trn, label_tst)

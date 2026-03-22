@@ -335,19 +335,19 @@ def run_pnet(
         f1 = f1_score(y_true, y_pred)
         mcc = matthews_corrcoef(y_true, y_pred)
         balanced_acc = balanced_accuracy_score(y_true, y_pred)
-        print(f"AUC-ROC:        {roc_auc:.4f}")
-        print(f"AUCPR:          {aucpr:.4f}")
-        print(f"F1:  {f1:.4f}")
-        print(f"Precision:  {precision:.4f}")
-        print(f"Recall:     {recall:.4f}")
-        print(f"MCC: {mcc:.4f}")
+        # print(f"AUC-ROC:        {roc_auc:.4f}")
+        # print(f"AUCPR:          {aucpr:.4f}")
+        # print(f"F1:  {f1:.4f}")
+        # print(f"Precision:  {precision:.4f}")
+        # print(f"Recall:     {recall:.4f}")
+        # print(f"MCC: {mcc:.4f}")
     else:
         f1_weighted = f1_score(y_true, y_pred, average='weighted')
         f1_macro = f1_score(y_true, y_pred, average='macro')
-        print(f"F1-weighted:    {f1_weighted:.4f}")
-        print(f"F1-macro:       {f1_macro:.4f}")
+        # print(f"F1-weighted:    {f1_weighted:.4f}")
+        # print(f"F1-macro:       {f1_macro:.4f}")
     acc = accuracy_score(y_true, y_pred)
-    print(f"Accuracy:       {acc:.4f}")
+    # print(f"Accuracy:       {acc:.4f}")
     perf = {
         'acc': acc,
         'f1': f1,

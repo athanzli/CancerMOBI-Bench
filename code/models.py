@@ -759,7 +759,7 @@ def run_customics(
         event=event,
         surv_time=surv_time,
         task=task, batch_size=1024, plot_roc=False)
-    print(f'Validation set performance: {perf}')
+    # print(f'Validation set performance: {perf}')
     # model.plot_loss()
     # model.get_latent_representation(omics_df)
 
@@ -947,7 +947,7 @@ def run_tmonet(
             fixed=False,
             device_id=device_id,
             class_weights=class_weights)
-        print(f'Validation set performance: {perf}')
+        # print(f'Validation set performance: {perf}')
 
         ########## NOTE get test set performance. switch back.
         data_tst = data_tst0.copy()
@@ -988,7 +988,7 @@ def run_tmonet(
             optimizer,
             omics,
             criterion)
-        print("Test set performance:", perf)
+        # print("Test set performance:", perf)
 
     elif task == 'survival':
         NotImplementedError
@@ -1390,20 +1390,20 @@ def run_stabl(
             f1      = f1_score(y_true, y_pred)
             mcc     = matthews_corrcoef(y_true, y_pred)
             balanced_acc = balanced_accuracy_score(y_true, y_pred)
-            print(f"AUC-ROC:        {roc_auc:.4f}")
-            print(f"AUCPR:          {aucpr:.4f}")
-            print(f"F1:             {f1:.4f}")
-            print(f"Precision:      {precision:.4f}")
-            print(f"Recall:         {recall:.4f}")
-            print(f"MCC:            {mcc:.4f}")
+            # print(f"AUC-ROC:        {roc_auc:.4f}")
+            # print(f"AUCPR:          {aucpr:.4f}")
+            # print(f"F1:             {f1:.4f}")
+            # print(f"Precision:      {precision:.4f}")
+            # print(f"Recall:         {recall:.4f}")
+            # print(f"MCC:            {mcc:.4f}")
         else:
             f1_weighted = f1_score(y_true, y_pred, average='weighted')
             f1_macro    = f1_score(y_true, y_pred, average='macro')
-            print(f"F1-weighted:    {f1_weighted:.4f}")
-            print(f"F1-macro:       {f1_macro:.4f}")
+            # print(f"F1-weighted:    {f1_weighted:.4f}")
+            # print(f"F1-macro:       {f1_macro:.4f}")
 
         acc = accuracy_score(y_true, y_pred)
-        print(f"Accuracy:       {acc:.4f}")
+        # print(f"Accuracy:       {acc:.4f}")
         perf = {
             'acc': acc,
             'f1': f1,
@@ -1416,7 +1416,7 @@ def run_stabl(
             'mcc': mcc if task_is_biclassif else None,
             'balanced_acc': balanced_acc if task_is_biclassif else None,
         }
-        print("Performance:", perf)
+        # print("Performance:", perf)
     else:
         perf = {
             'acc': None,
@@ -1578,19 +1578,19 @@ def run_SVM_ONE_and_SVM_RFE(data, label, data_tst=None, label_tst=None,
             f1 = f1_score(y_true, y_pred)
             mcc = matthews_corrcoef(y_true, y_pred)
             balanced_acc = balanced_accuracy_score(y_true, y_pred)
-            print(f"AUC-ROC:        {roc_auc:.4f}")
-            print(f"AUCPR:          {aucpr:.4f}")
-            print(f"F1:  {f1:.4f}")
-            print(f"Precision:  {precision:.4f}")
-            print(f"Recall:     {recall:.4f}")
-            print(f"MCC: {mcc:.4f}")
+            # print(f"AUC-ROC:        {roc_auc:.4f}")
+            # print(f"AUCPR:          {aucpr:.4f}")
+            # print(f"F1:  {f1:.4f}")
+            # print(f"Precision:  {precision:.4f}")
+            # print(f"Recall:     {recall:.4f}")
+            # print(f"MCC: {mcc:.4f}")
         else:
             f1_weighted = f1_score(y_true, y_pred, average='weighted')
             f1_macro = f1_score(y_true, y_pred, average='macro')
-            print(f"F1-weighted:    {f1_weighted:.4f}")
-            print(f"F1-macro:       {f1_macro:.4f}")
+            # print(f"F1-weighted:    {f1_weighted:.4f}")
+            # print(f"F1-macro:       {f1_macro:.4f}")
         acc = accuracy_score(y_true, y_pred)
-        print(f"Accuracy:       {acc:.4f}")
+        # print(f"Accuracy:       {acc:.4f}")
         perf = {
             'acc': acc,
             'f1': f1,
@@ -1603,7 +1603,7 @@ def run_SVM_ONE_and_SVM_RFE(data, label, data_tst=None, label_tst=None,
             'mcc' : mcc if task_is_biclassif else None,
             'balanced_acc': balanced_acc if task_is_biclassif else None,
         }
-        print("Performance:", perf)
+        # print("Performance:", perf)
     return [ft_score_ONE, ft_score_RFE], perf
 
 def run_RF_VI_and_RF_RFE(
@@ -1668,19 +1668,19 @@ def run_RF_VI_and_RF_RFE(
             f1 = f1_score(y_true, y_pred)
             mcc = matthews_corrcoef(y_true, y_pred)
             balanced_acc = balanced_accuracy_score(y_true, y_pred)
-            print(f"AUC-ROC:        {roc_auc:.4f}")
-            print(f"AUCPR:          {aucpr:.4f}")
-            print(f"F1:  {f1:.4f}")
-            print(f"Precision:  {precision:.4f}")
-            print(f"Recall:     {recall:.4f}")
-            print(f"MCC: {mcc:.4f}")
+            # print(f"AUC-ROC:        {roc_auc:.4f}")
+            # print(f"AUCPR:          {aucpr:.4f}")
+            # print(f"F1:  {f1:.4f}")
+            # print(f"Precision:  {precision:.4f}")
+            # print(f"Recall:     {recall:.4f}")
+            # print(f"MCC: {mcc:.4f}")
         else:
             f1_weighted = f1_score(y_true, y_pred, average='weighted')
             f1_macro = f1_score(y_true, y_pred, average='macro')
-            print(f"F1-weighted:    {f1_weighted:.4f}")
-            print(f"F1-macro:       {f1_macro:.4f}")
+            # print(f"F1-weighted:    {f1_weighted:.4f}")
+            # print(f"F1-macro:       {f1_macro:.4f}")
         acc = accuracy_score(y_true, y_pred)
-        print(f"Accuracy:       {acc:.4f}")
+        # print(f"Accuracy:       {acc:.4f}")
         perf = {
             'acc': acc,
             'f1': f1,
@@ -1693,7 +1693,7 @@ def run_RF_VI_and_RF_RFE(
             'mcc' : mcc if task_is_biclassif else None,
             'balanced_acc': balanced_acc if task_is_biclassif else None,
         }
-        print("Performance:", perf)
-    
+        # print("Performance:", perf)
+
     return [ft_score_VI, ft_score_RFE], perf
 
