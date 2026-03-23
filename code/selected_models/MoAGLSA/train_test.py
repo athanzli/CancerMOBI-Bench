@@ -279,10 +279,10 @@ def train_test(
                 f1weighted = f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='weighted')
                 f1macro = f1_score(labels_trte[trte_idx["te"]], te_prob.argmax(1), average='macro')
 
-                print(" Epoch {:d}".format(epoch), "Val ACC: {:.5f}".format(acc),
-                    "  F1 weighted: {:.5f}".format(f1weighted),
-                    " F1 macro: {:.5f}".format(f1macro), "Train Loss:{:.5f}".format(train_loss[epoch]),
-                    " Val Loss:{:.5f}".format(current_loss))
+                # print(" Epoch {:d}".format(epoch), "Val ACC: {:.5f}".format(acc),
+                #     "  F1 weighted: {:.5f}".format(f1weighted),
+                #     " F1 macro: {:.5f}".format(f1macro), "Train Loss:{:.5f}".format(train_loss[epoch]),
+                #     " Val Loss:{:.5f}".format(current_loss))
 
     print(f"MoAGLSA Training time for {epoch} epochs: {total_train_time:.2f} seconds")
 

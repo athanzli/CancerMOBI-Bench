@@ -454,7 +454,7 @@ def train_loop(epochs, train_loader, val_loader, model, criterion, optimizer, lo
                 torch.save(model.state_dict(), model_path)
 
             # NOTE
-            print(f"Epoch {epoch} validation f1:{f1:4f}, val loss:{val_loss:4f}")
+            # print(f"Epoch {epoch} validation f1:{f1:4f}, val loss:{val_loss:4f}")
             logger.info(f"Epoch {epoch} validation f1:{f1:4f}, val loss:{val_loss:4f}")
             ## NOTE es
             if val_loss < best_val_loss:

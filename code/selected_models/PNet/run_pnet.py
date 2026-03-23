@@ -261,7 +261,7 @@ def run_pnet(
         val_acc = accuracy_score(val_labels, val_preds)
         
         if epoch % 20 == 0:
-            print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, lr: {current_lr}")
+            # print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, lr: {current_lr}")
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss

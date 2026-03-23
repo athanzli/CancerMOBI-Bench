@@ -443,10 +443,10 @@ def run_pathformer(
 
                 # output
                 print(f' ==  Epoch: {epoch} | Training Loss: {epoch_loss:.6f}')
-                print('ACC_train:', ACC_train)
+                # print('ACC_train:', ACC_train)
                 # print('auc_train:', AUC_train)
-                print('f1_weighted_train:', f1_weighted_train)
-                print('f1_macro_train:', f1_macro_train)
+                # print('f1_weighted_train:', f1_weighted_train)
+                # print('f1_macro_train:', f1_macro_train)
                 print('lr:', lr_epoch)
 
                 ###### Model Validation ########
@@ -476,10 +476,10 @@ def run_pathformer(
                 # output
                 print()
                 print(f'val Loss: {val_loss:.6f}')
-                print('ACC_val:', ACC_val)
+                # print('ACC_val:', ACC_val)
                 # print('auc_val:', AUC_val)
-                print('f1_weighted_val:', f1_weighted_val)
-                print('f1_macro_val:', f1_macro_val)
+                # print('f1_weighted_val:', f1_weighted_val)
+                # print('f1_macro_val:', f1_macro_val)
 
                 print("=========================================================")
 
@@ -600,13 +600,13 @@ def run_pathformer(
 
                 # output
                 print(f' ==  Epoch: {epoch} | Training Loss: {epoch_loss:.6f}')
-                print('acc_train:', acc_train)
-                print('auc_weighted_ovr_train:', auc_weighted_ovr_train)
-                print('auc_weighted_ovo_train:', auc_weighted_ovo_train)
-                print('auc_macro_ovr_train:', auc_macro_ovr_train)
-                print('auc_macro_ovo_train:', auc_macro_ovo_train)
-                print('f1_weighted_train:', f1_weighted_train)
-                print('f1_macro_train:', f1_macro_train)
+                # print('acc_train:', acc_train)
+                # print('auc_weighted_ovr_train:', auc_weighted_ovr_train)
+                # print('auc_weighted_ovo_train:', auc_weighted_ovo_train)
+                # print('auc_macro_ovr_train:', auc_macro_ovr_train)
+                # print('auc_macro_ovo_train:', auc_macro_ovo_train)
+                # print('f1_weighted_train:', f1_weighted_train)
+                # print('f1_macro_train:', f1_macro_train)
                 print('lr_epoch:', lr_epoch)
 
                 ###### Model val ########
@@ -639,13 +639,13 @@ def run_pathformer(
                 # output
                 print()
                 print(f'val Loss: {val_loss:.6f}')
-                print('acc_val:', acc_val)
-                print('auc_weighted_ovr_val:', auc_weighted_ovr_val)
-                print('auc_weighted_ovo_val:', auc_weighted_ovo_val)
-                print('auc_macro_ovr_val:', auc_macro_ovr_val)
-                print('auc_macro_ovo_val:', auc_macro_ovo_val)
-                print('f1_weighted_val:', f1_weighted_val)
-                print('f1_macro_val:', f1_macro_val)
+                # print('acc_val:', acc_val)
+                # print('auc_weighted_ovr_val:', auc_weighted_ovr_val)
+                # print('auc_weighted_ovo_val:', auc_weighted_ovo_val)
+                # print('auc_macro_ovr_val:', auc_macro_ovr_val)
+                # print('auc_macro_ovo_val:', auc_macro_ovo_val)
+                # print('f1_weighted_val:', f1_weighted_val)
+                # print('f1_macro_val:', f1_macro_val)
                 print("=========================================================")
 
                 ####### early_stopping ######
