@@ -621,6 +621,7 @@ def run_deepkegg(
 
         if (epoch + 1) % 10 == 0 or epoch == 0:
             # print(f'Epoch [{epoch+1}/{epochs}], Train avg. Loss: {avg_loss:.4f}, Val Loss: {loss_val:.4f}, val_accuracy: {accuracy:.4f}')
+            pass
 
     print(f"DeepKEGG Training time for {epoch} epochs: {training_time:.2f} seconds.")
     
