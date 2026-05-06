@@ -40,7 +40,7 @@ This repository supports two main use cases:
 
 ### Download the benchmark data
 
-Download `data.zip` from https://zenodo.org/records/17860662 and place it in the repository root directory. Then run:
+Download `data.zip` from https://zenodo.org/records/17860662 and place it in the repository root directory. Then run
 
 ```bash
 mkdir -p data && unzip data.zip -d data
