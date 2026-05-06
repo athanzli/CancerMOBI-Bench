@@ -1,13 +1,13 @@
 # CancerMOBI-Bench: Cancer Multi-Omics Biomarker Identification Benchmark
 
-[![Paper](https://img.shields.io/badge/Paper-bioRxiv-b31b1b)](https://doi.org/10.64898/2025.12.18.695266)
+[![Paper](https://img.shields.io/badge/Paper-Briefings_in_Bioinformatics-b31b1b)](https://doi.org/10.1093/bib/bbag200)
 [![Data](https://img.shields.io/badge/Data-Zenodo-blue)](https://zenodo.org/records/17860662)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **CancerMOBI-Bench** is a benchmark for evaluating computational methods for multi-omics biomarker identification in cancer. It evaluates methods against clinically validated reference biomarkers across 5 TCGA cancer datasets and 20 baseline methods.
 
-> **Paper**: Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.64898/2025.12.18.695266). bioRxiv (2025).
+> **Paper**: Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.1093/bib/bbag200). Briefings in Bioinformatics (2026).
 
 This repository supports two main use cases:
 
@@ -494,13 +494,13 @@ print(consensus.head(20))
 ## Citation
 
 ```bibtex
-@article{li2025benchmarking,
+@article{li2026benchmarking,
   title={Benchmarking computational methods for multi-omics biomarker discovery in cancer},
   author={Li, Athan Z. and Du, Yuxuan and Liu, Yan and Chen, Liang and Liu, Ruishan},
-  journal={bioRxiv},
-  year={2025},
-  doi={10.64898/2025.12.18.695266}
+  journal={Briefings in Bioinformatics},
+  year={2026},
+  doi={10.1093/bib/bbag200}
 }
 ```
 
-Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.64898/2025.12.18.695266). bioRxiv (2025).
+Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.1093/bib/bbag200). Briefings in Bioinformatics (2026).
