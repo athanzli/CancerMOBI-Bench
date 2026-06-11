@@ -63,12 +63,6 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 > pip install -r requirements.txt          # or: conda env create -f environment.yml
 > ```
 
-**Core packages** (required for Use Case 1: benchmarking):
-
-```bash
-pip install numpy pandas scipy scikit-learn matplotlib seaborn rbo tqdm
-```
-
 **R bridge** (required for RRA aggregation in Use Case 2, and for R-based methods such as DIABLO, GAUDI, MCIA, GDF, DPM, asmPLSDA):
 
 ```bash
