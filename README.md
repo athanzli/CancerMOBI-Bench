@@ -59,11 +59,9 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 - Python 3.10+ recommended
 - R 4.0+ (required for several benchmarked methods and RRA aggregation)
 
-> **Quickest path:** install the pinned dependency set in one shot:
 > ```bash
 > pip install -r requirements.txt          # or: conda env create -f environment.yml
 > ```
-> The per-package commands below are the manual equivalent.
 
 **Core packages** (required for Use Case 1: benchmarking):
 
@@ -76,8 +74,6 @@ pip install numpy pandas scipy scikit-learn matplotlib seaborn rbo tqdm
 ```bash
 pip install "rpy2>=3.5.5"
 ```
-
-> **Note**: `rpy2>=3.5.5` is required for compatibility with pandas ≥2.0. Earlier versions (e.g., 3.5.3) use `iteritems()`, which was removed in pandas 2.0.
 
 ---
 
@@ -512,5 +508,3 @@ print(consensus.head(20))
   doi={10.1093/bib/bbag200}
 }
 ```
-
-Athan Z. Li, Yuxuan Du, Yan Liu, Liang Chen, Ruishan Liu. [*Benchmarking computational methods for multi-omics biomarker discovery in cancer*](https://doi.org/10.1093/bib/bbag200). Briefings in Bioinformatics (2026).
