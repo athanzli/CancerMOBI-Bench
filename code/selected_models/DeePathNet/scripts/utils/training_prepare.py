@@ -6,9 +6,22 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# DeePathNet dir = repo_root/code/selected_models/DeePathNet (this file: .../scripts/utils/)
+_DEEPATHNET_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_OLD_PREFIX = '/home/athan.li/eval_bk/code/selected_models/DeePathNet'
+
+
+def _normalize_configs(configs):
+    """Remap absolute paths baked into the config JSON to this repo checkout."""
+    for k, v in list(configs.items()):
+        if isinstance(v, str) and v.startswith(_OLD_PREFIX):
+            configs[k] = os.path.normpath(_DEEPATHNET_DIR + v[len(_OLD_PREFIX):])
+    return configs
+
 
 def get_logger(config_file, STAMP):
-    configs = json.load(open(config_file, "r"))
+    configs = _normalize_configs(json.load(open(config_file, "r")))
+    os.makedirs(configs["work_dir"], exist_ok=True)
     log_suffix = ""
     if "suffix" in configs:
         log_suffix = configs["suffix"]
@@ -32,10 +45,9 @@ def get_logger(config_file, STAMP):
 
 
 def prepare_data_cv(config_file, STAMP):
-    configs = json.load(open(config_file, "r"))
+    configs = _normalize_configs(json.load(open(config_file, "r")))
 
-    if not os.path.isdir(configs["work_dir"]):
-        os.system(f"mkdir -p {configs['work_dir']}")
+    os.makedirs(configs["work_dir"], exist_ok=True)
 
     data_file = configs["data_file"]
     data_type = configs["data_type"]
@@ -126,10 +138,9 @@ def prepare_data_cv(config_file, STAMP):
 
 
 def prepare_data_independent_test(config_file, STAMP, seed=1):
-    configs = json.load(open(config_file, "r"))
+    configs = _normalize_configs(json.load(open(config_file, "r")))
 
-    if not os.path.isdir(configs["work_dir"]):
-        os.system(f"mkdir -p {configs['work_dir']}")
+    os.makedirs(configs["work_dir"], exist_ok=True)
 
     data_file_train = configs["data_file_train"]
     data_file_test = configs["data_file_test"]

@@ -3,18 +3,20 @@
 # E.g. python scripts/deepathnet_cv.py configs/tcga_all_cancer_types/mutation_cnv_rna/deepathnet_allgenes_mutation_cnv_rna.json
 # """
 ###################################### 
+import os
 import pandas as pd
 global DEVICE
 
 import sys
-sys.path.append('/home/athan.li/eval_bk/code/')
+# repo_root/code  (this file: repo_root/code/selected_models/DeePathNet/scripts/)
+_CODE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(_CODE_DIR)
 from utils import factorize_label, mod_mol_dict, modmol_gene_set_tcga, convert_omics_to_gene_level, P2G, C2G, SPLITTER, R2G
 
 import json
 import sys
 from datetime import datetime
 
-from sympy import randMatrix
 import torch.optim
 from sklearn.model_selection import KFold, StratifiedKFold
 from torch.utils.data import DataLoader
@@ -23,8 +25,8 @@ from .model_transformer_lrp import DeePathNet
 from .models import *
 
 STAMP = datetime.today().strftime("%Y%m%d%H%M")
-# proj_dir = "/home/scai/DeePathNet" 
-proj_dir = '/home/athan.li/eval_bk/code/selected_models/DeePathNet' # NOTE
+# DeePathNet project dir = repo_root/code/selected_models/DeePathNet
+proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.extend([proj_dir])
 
 def get_setup(genes_to_id, id_to_genes, target_dim):
@@ -90,8 +92,7 @@ def get_setup(genes_to_id, id_to_genes, target_dim):
         tissues=tissues,
     )
     logger.info(
-        # open("/home/scai/DeePathNet/scripts/model_transformer_lrp.py", "r").read()
-        open("/home/athan.li/eval_bk/code/selected_models/DeePathNet/scripts/model_transformer_lrp.py", "r").read() # NOTE
+        open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "model_transformer_lrp.py"), "r").read()
     )
 
     logger.info(model)
@@ -227,11 +228,16 @@ def run_deepathnet(
     ################
     # task = 'classif'
     if task == 'classif': #  both biclassif and multiclassif
-        config_file = '/home/athan.li/eval_bk/code/selected_models/DeePathNet/configs/deepathnet_forbk_classif.json' # NOTE
+        config_file = os.path.join(proj_dir, 'configs', 'deepathnet_forbk_classif.json')
     elif task == 'regression':
-        config_file = '/home/athan.li/eval_bk/code/selected_models/DeePathNet/configs/deepathnet_forbk_regression.json' # NOTE
+        config_file = os.path.join(proj_dir, 'configs', 'deepathnet_forbk_regression.json')
     # config_file = '/home/athan.li/eval_bk/code/selected_models/DeePathNet/configs/tcga_all_cancer_types/mutation_cnv_rna/deepathnet_mutation_cnv_rna_example.json'
     configs = json.load(open(config_file, "r"))
+    # Remap any absolute paths baked into the config to this repo checkout.
+    _old_prefix = '/home/athan.li/eval_bk/code/selected_models/DeePathNet'
+    for _k, _v in list(configs.items()):
+        if isinstance(_v, str) and _v.startswith(_old_prefix):
+            configs[_k] = os.path.normpath(proj_dir + _v[len(_old_prefix):])
 
     # Avoid modifying caller's DataFrames in-place
     data_trn = data_trn.copy()
@@ -263,7 +269,7 @@ def run_deepathnet(
     # from matplotlib_venn import venn2
     # venn2([set(omics_gset), set(cancer_genes)])
     # pd.DataFrame(cancer_genes).to_csv("/home/athan.li/eval_bk/code/selected_models/DeePathNet/data/graph_predefined/LCPathways/LCPathways_genes.csv", index=False)
-    lcpw_gset = pd.read_csv("/home/athan.li/eval_bk/code/selected_models/DeePathNet/data/graph_predefined/LCPathways/LCPathways_genes.csv", index_col=0).index.values.astype(str)  # this is from cancer_genes in load_pathway
+    lcpw_gset = pd.read_csv(os.path.join(proj_dir, 'data', 'graph_predefined', 'LCPathways', 'LCPathways_genes.csv'), index_col=0).index.values.astype(str)  # this is from cancer_genes in load_pathway
     cover_gset = np.intersect1d(omics_gset, lcpw_gset) # auto unique and sorted
 
     assert 'mRNA' in mdic['mods_uni'], "mRNA must be present"

@@ -59,6 +59,12 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 - Python 3.10+ recommended
 - R 4.0+ (required for several benchmarked methods and RRA aggregation)
 
+> **Quickest path:** install the pinned dependency set in one shot:
+> ```bash
+> pip install -r requirements.txt          # or: conda env create -f environment.yml
+> ```
+> The per-package commands below are the manual equivalent.
+
 **Core packages** (required for Use Case 1: benchmarking):
 
 ```bash
@@ -357,14 +363,18 @@ Running the benchmarked methods requires their respective dependencies. For RRA 
 install.packages("RobustRankAggreg")
 ```
 
-**Method-specific Python dependencies:**
+**Method-specific Python dependencies** (on top of the core install; also in [`requirements.txt`](requirements.txt)):
 
-| Method | Python packages |
-|--------|----------------|
-| All DL methods | `torch` (+ CUDA for GPU) |
-| DeePathNet, Pathformer, CustOmics | `shap` |
-| DeepKEGG, PNet, GENIUS | `captum` |
-| Stabl | Install from bundled source: `pip install ./code/selected_models/Stabl/` |
+| Method | Extra Python packages |
+|--------|----------------------|
+| DeePathNet | `torch==2.2.2`, `shap==0.46.0`, `einops` |
+| Pathformer | `torch==2.2.2`, `shap==0.46.0`, `einops` |
+| CustOmics | `torch==2.2.2`, `shap==0.46.0`, `lifelines` |
+| DeepKEGG | `torch==2.2.2`, `captum==0.7.0` |
+| GENIUS | `torch==2.2.2`, `captum==0.7.0` |
+| TMONet | `torch==2.2.2`, `captum==0.7.0`, `lifelines`, `numba` |
+| MOGLAM | `torch==2.2.2` |
+| Stabl | bundled source: `pip install ./code/selected_models/Stabl/` (pulls `knockpy`, `osqp`, `statsmodels`, `adjustText`; its `knockpy`→`choldate` dependency is compiled, so a C/C++ toolchain is required — on Windows install the **Microsoft C++ Build Tools** first) |
 
 **Method-specific R packages** (install via `install.packages()` or Bioconductor):
 
@@ -372,7 +382,7 @@ install.packages("RobustRankAggreg")
 |--------|------------|
 | DIABLO | `mixOmics` (Bioconductor), `caret` |
 | GAUDI | `gaudi` |
-| GDF | `ranger`, `igraph`, `DFNET`, `ModelMetrics`, `PRROC` |
+| GDF | `ranger`, `igraph`, `pROC`, `DFNET`, `ModelMetrics`, `PRROC` |
 | asmPLSDA | `asmbPLS` |
 
 ### Step 1: Run benchmarked methods

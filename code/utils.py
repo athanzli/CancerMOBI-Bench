@@ -1,24 +1,18 @@
 import pandas as pd
 import numpy as np
 import time
+import os
 
 SPLITTER = '@'
-# TCGA
-try:
-    P2G = pd.read_csv("../data/TCGA/TCGA_protein2gene_mapping.csv", index_col=0)
-    C2G = pd.read_csv("../data/TCGA/TCGA_cpg2gene_mapping.csv", index_col=0)
-    R2G = pd.read_csv("../data/TCGA/TCGA_miRNA2gene_mapping.csv", index_col=0)
-except:
-    try:
-        P2G = pd.read_csv("/home/athan.li/eval_bk/data/TCGA/TCGA_protein2gene_mapping.csv", index_col=0)
-        C2G = pd.read_csv("/home/athan.li/eval_bk/data/TCGA/TCGA_cpg2gene_mapping.csv", index_col=0)
-        R2G = pd.read_csv("/home/athan.li/eval_bk/data/TCGA/TCGA_miRNA2gene_mapping.csv", index_col=0)
-    except:
-        P2G = pd.read_csv("D:/Projects/eval_bk/data/TCGA/TCGA_protein2gene_mapping.csv", index_col=0)
-        C2G = pd.read_csv("D:/Projects/eval_bk/data/TCGA/TCGA_cpg2gene_mapping.csv", index_col=0)
-        R2G = pd.read_csv("D:/Projects/eval_bk/data/TCGA/TCGA_miRNA2gene_mapping.csv", index_col=0)
+# TCGA mapping files, resolved relative to this file (repo_root/data/TCGA) so
+# they load regardless of the current working directory.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_TCGA_DIR = os.path.join(_REPO_ROOT, "data", "TCGA")
+P2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_protein2gene_mapping.csv"), index_col=0)
+C2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_cpg2gene_mapping.csv"), index_col=0)
+R2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_miRNA2gene_mapping.csv"), index_col=0)
 
-TCGA_DATA_PATH = '/data/zhaohong/TCGA_data/data/'
+TCGA_DATA_PATH = _TCGA_DIR
 
 def is_sorted(l):
     return all(l[i] <= l[i+1] for i in range(len(l)-1))

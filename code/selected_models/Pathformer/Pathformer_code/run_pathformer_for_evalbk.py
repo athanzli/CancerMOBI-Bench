@@ -4,8 +4,9 @@ import os
 import sys
 # sys.path.append('/home/athan.li/eval_bk/code/')
 from utils import factorize_label, mod_mol_dict, modmol_gene_set_tcga, P2G, C2G, R2G, SPLITTER
-os.chdir("/home/athan.li/eval_bk/code/selected_models/Pathformer/Pathformer_code/")
-# os.chdir("/workspace/eval_bk/code/selected_models/Pathformer/Pathformer_code/")
+# Pathformer reads ../reference/* and writes ../../../../result/* relative to this
+# directory, so anchor cwd here regardless of where the process was launched.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import pandas as pd
 import numpy as np

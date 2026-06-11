@@ -13,15 +13,19 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score, roc_auc_scor
 torch.manual_seed(1029)
 np.random.seed(1029)
 
+import os
 import pandas as pd
 import numpy as np
 from captum.attr import DeepLift
 
 MODS = ['CNV', 'DNAm', 'SNV', 'mRNA', 'miRNA', 'protein']
-DATA_PATH = '/home/athan.li/eval_bk/data/'
+# repo_root/data (this file is at repo_root/code/selected_models/DeepKEGG/)
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+DATA_PATH = os.path.join(_REPO_ROOT, 'data')
+_TCGA_DIR = os.path.join(DATA_PATH, 'TCGA')
 
-C2G = pd.read_csv("/data/zhaohong/TCGA_data/data/processed/TCGA_cpg2gene_mapping.csv", index_col=0)
-P2G = pd.read_csv("/data/zhaohong/TCGA_data/data/processed/TCGA_protein2gene_mapping.csv", index_col=0)
+C2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_cpg2gene_mapping.csv"), index_col=0)
+P2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_protein2gene_mapping.csv"), index_col=0)
 
 SPLITTER = '@'
 def mod_mol_dict(mol_ids):
@@ -349,16 +353,15 @@ def run_deepkegg(
     ###########################################################################
     # using deepkegg's own pathway data
     # genes-pathways annotation
-    # path = './KEGG_pathways/20230205_kegg_hsa.gmt'
-    path = '/home/athan.li/eval_bk/code/selected_models/DeepKEGG/KEGG_pathways/20230205_kegg_hsa.gmt'
+    _kegg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'KEGG_pathways')
+    path = os.path.join(_kegg_dir, '20230205_kegg_hsa.gmt')
     files = open(path, encoding='utf-8')
     files = files.readlines()
     paways_genes_dict = {}
     for i in files: 
         paways_genes_dict[i.split('\t')[0].split('_')[0]] = i.replace('\n','').split('\t')[2:] 
     # mirna-pathways annotation
-    path = './KEGG_pathways/kegg_anano.txt'
-    path = '/home/athan.li/eval_bk/code/selected_models/DeepKEGG/KEGG_pathways/kegg_anano.txt'
+    path = os.path.join(_kegg_dir, 'kegg_anano.txt')
     files = open(path,encoding='utf-8')
     files = files.readlines()
     paways_mirna_dict = {}

@@ -118,7 +118,6 @@ def run_diablo(
     from rpy2.robjects import default_converter, numpy2ri
     from rpy2.robjects import vectors as rvec
     robjects.r(run_diablo_r)
-    pandas2ri.activate()
     robjects.r('library(mixOmics)')
     robjects.r('library(caret)')
 

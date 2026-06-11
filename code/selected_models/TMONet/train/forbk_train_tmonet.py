@@ -180,7 +180,8 @@ def val_pretrain(test_dataloader, model, epoch, cancer, fold, pretrain_omics):
     return Loss
 
 #%%
-TMONET_PATH = "/home/athan.li/eval_bk/code/selected_models/TMONet/"
+import os
+TMONET_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo_root/code/selected_models/TMONet
 
 def TCGA_Dataset_pretrain(
     omics,

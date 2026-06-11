@@ -196,18 +196,20 @@ def run_method(
     if _code_utils is not None:
         sys.modules['utils'] = _code_utils
 
-    # Dispatch
-    ft_score = _dispatch(method_name, X_train, y_train, X_val, y_val,
-                         X_test, y_test, device)
-
-    # Restore previous state
-    if sys.path[0] == _CODE_DIR:
-        sys.path.pop(0)
-    if prev_utils is not None:
-        sys.modules['utils'] = prev_utils
-    elif 'utils' in sys.modules and _code_utils is not None:
-        sys.modules.pop('utils', None)
-    os.chdir(prev_cwd)
+    try:
+        # Dispatch
+        ft_score = _dispatch(method_name, X_train, y_train, X_val, y_val,
+                             X_test, y_test, device)
+    finally:
+        # Restore previous state even if the method raises, so a failed method
+        # does not leave cwd/sys.path/sys.modules pointing into code/.
+        if sys.path and sys.path[0] == _CODE_DIR:
+            sys.path.pop(0)
+        if prev_utils is not None:
+            sys.modules['utils'] = prev_utils
+        elif 'utils' in sys.modules and _code_utils is not None:
+            sys.modules.pop('utils', None)
+        os.chdir(prev_cwd)
 
     # Normalize output to single-column DataFrame with 'score' column
     ft_score = _normalize_output(ft_score, method_name)
@@ -401,7 +403,8 @@ def run_method_rra(
     for method_name in method_names:
         print(f"\n[run_method_rra] Running {method_name}...")
         ft = run_method(
-            method_name, X_train=X_train.copy(), y_train=y_train.copy(),
+            method_name, X_train=X_train.copy(),
+            y_train=y_train.copy() if y_train is not None else None,
             X_val=X_val.copy() if X_val is not None else None,
             y_val=y_val.copy() if y_val is not None else None,
             X_test=X_test.copy() if X_test is not None else None,
@@ -411,7 +414,14 @@ def run_method_rra(
         print(f"[run_method_rra] {method_name} done. Output shape: {ft.shape}")
         # Convert to gene-level so all methods use the same feature space
         mode = _METHOD_MODE.get(method_name, 0)
-        ft_gene = convert_ft_score_to_gene_level(ft, mode=mode)
+        # mode 2 (gene-only output, e.g. DPM) needs the input modalities to
+        # reconstruct per-omics rows during gene-level conversion.
+        if mode == 2:
+            from utils import mod_mol_dict
+            omics_types = list(mod_mol_dict(np.asarray(X_train.columns))['mods_uni'])
+            ft_gene = convert_ft_score_to_gene_level(ft, mode=mode, omics_types=omics_types)
+        else:
+            ft_gene = convert_ft_score_to_gene_level(ft, mode=mode)
         print(f"[run_method_rra] {method_name} gene-level shape: {ft_gene.shape}")
         ft_scores.append(ft_gene)
 

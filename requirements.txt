@@ -1,0 +1,23 @@
+# CancerMOBI-Bench — pinned Python dependencies (Python 3.10+)
+# Install:  pip install -r requirements.txt
+
+# ----- Core (Use Case 1 + R-based methods in Use Case 2) -----
+numpy==1.26.4
+pandas==2.3.1
+scipy==1.16.1
+scikit-learn==1.7.1
+matplotlib==3.9.1
+seaborn==0.13.2
+rbo==0.1.3
+tqdm==4.65.0
+
+# ----- R bridge (RRA aggregation + R-based methods: DIABLO, GAUDI, GDF, asmPLSDA) -----
+rpy2==3.6.2
+
+# ----- Deep-learning methods, optional (DeePathNet, DeepKEGG, MOGLAM, CustOmics, TMONet, GENIUS, Pathformer) -----
+# The torch line installs the CPU build; for GPU install the matching CUDA build of torch 2.2.x from https://pytorch.org/
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2
+shap==0.46.0
+captum==0.7.0
+einops==0.8.2

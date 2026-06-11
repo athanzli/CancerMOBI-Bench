@@ -11,18 +11,24 @@ from scipy.stats import mannwhitneyu
 from sklearn.metrics import roc_auc_score
 from typing import List, Union
 import pickle as pkl
+import os
 
 SPLITTER = '@'
-# TCGA
+# TCGA mapping files, resolved relative to this file (repo_root/data/TCGA) so
+# they load regardless of the current working directory.
+_TCGA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "TCGA")
 try:
-    C2G = pd.read_csv("./data/TCGA/TCGA_cpg2gene_mapping.csv", index_col=0)
-    R2G = pd.read_csv("./data/TCGA/TCGA_miRNA2gene_mapping.csv", index_col=0)
-except:
-    raise FileNotFoundError("Please make sure the mapping files for DNAm, miRNA to gene are in the ./data/TCGA/ folder.")
+    C2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_cpg2gene_mapping.csv"), index_col=0)
+    R2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_miRNA2gene_mapping.csv"), index_col=0)
+except FileNotFoundError:
+    raise FileNotFoundError(
+        f"Mapping files for DNAm/miRNA to gene not found in {_TCGA_DIR}. "
+        "Make sure the benchmark data has been downloaded/unzipped (see README)."
+    )
 
 try:
-    P2G = pd.read_csv("./data/TCGA/TCGA_protein2gene_mapping.csv", index_col=0)
-except:
+    P2G = pd.read_csv(os.path.join(_TCGA_DIR, "TCGA_protein2gene_mapping.csv"), index_col=0)
+except FileNotFoundError:
     P2G = None
 
 def is_sorted(l):

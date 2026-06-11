@@ -75,7 +75,8 @@ def run_RRA(list_rankings):
     from rpy2.robjects.packages import importr
     from rpy2.robjects import pandas2ri
 
-    pandas2ri.activate()
+    # NOTE: rpy2 >= 3.6 removed pandas2ri.activate(); converting the R result
+    # explicitly via pandas2ri.rpy2py() (below) works without global activation.
     RRA = importr('RobustRankAggreg')
 
     # convert to str

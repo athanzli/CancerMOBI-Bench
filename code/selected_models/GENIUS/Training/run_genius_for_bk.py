@@ -28,7 +28,9 @@ import copy
 ##########################################################################################
 
 import sys
-sys.path.append('/home/athan.li/eval_bk/code/')
+import os
+# repo_root/code  (this file: repo_root/code/selected_models/GENIUS/Training/)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from utils import factorize_label, mod_mol_dict, modmol_gene_set_tcga, convert_omics_to_gene_level, P2G, C2G, SPLITTER, R2G
 
 
@@ -63,7 +65,7 @@ def run_genius(
     print("start_of_lr_decrease:", start_of_lr_decrease)
 
     # ascat_data = '../data/example_data/ascat.csv'
-    all_genes_included = 'selected_models/GENIUS/data/example_data/all_genes_ordered_by_chr_no_sex_chr.csv'
+    all_genes_included = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'example_data', 'all_genes_ordered_by_chr_no_sex_chr.csv')
     # mutation_data = '../data/example_data/muts.csv'
     # gene_exp_data = '../data/example_data/gene_exp_matrix.csv'
     # gene_methyl_data = '../data/example_data/methylation.csv'

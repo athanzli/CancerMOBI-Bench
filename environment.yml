@@ -1,0 +1,18 @@
+# CancerMOBI-Bench — conda environment (Python deps via pip for exact pins).
+#
+#   conda env create -f environment.yml
+#   conda activate cancermobi-bench
+#
+# This installs the Python stack only. R (>= 4.0) and the R packages used by
+# R-based methods / RRA (RobustRankAggreg, mixOmics, caret, ...) are installed
+# separately — see the README "Dependencies" and "Use Case 2" sections.
+#
+# numpy is kept < 2 on purpose (rbo + the compiled stack break under numpy 2.x).
+name: cancermobi-bench
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - -r requirements.txt
