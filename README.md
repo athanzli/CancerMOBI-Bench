@@ -31,6 +31,7 @@ This repository supports two main use cases:
   - [Additional dependencies](#additional-dependencies)
   - [Step 1: Run benchmarked methods](#step-1-run-benchmarked-methods)
   - [Step 2: Aggregate rankings with RRA](#step-2-aggregate-rankings-with-rra)
+- [Reference biomarkers](#reference-biomarkers)
 - [Evaluation metrics](#evaluation-metrics)
 - [Citation](#citation)
 
@@ -473,6 +474,67 @@ print(consensus.head(20))
 ```
 
 > **Note**: `convert_ft_score_to_gene_level()` converts raw method output (`MOD@molecule` format) to gene-level scores. The `mode` parameter depends on the method's output format: `mode=0` for most methods (molecule-level output), `mode=1` for methods that output `MOD@gene` format (e.g., DeePathNet, GDF).
+
+---
+
+## Reference biomarkers
+
+CancerMOBI-Bench evaluates each method against a curated panel of **43 clinically validated reference biomarkers** spanning the 5 real-data tasks. These reference biomarkers were collected from oncology knowledge bases and restricted to high-confidence (clinical evidence from well-powered studies with expert consensus).
+
+The full panel is also provided in [`reference_biomarkers.csv`](reference_biomarkers.csv).
+
+| Task | Gene | Level | KB | Omics | Direction | Key biological evidence |
+|------|------|:-----:|:--:|-------|:---------:|-------------------------|
+| Survival BRCA | ABCB1 | B | CIViC | Mutation | Better | ABCB1 variants (G2677T, C3435T) associated with longer PFS in HER2+ mBC treated with taxane+trastuzumab. |
+| Survival BRCA | CCND1 | B | CIViC | Gene expression | Poor | Cyclin D1 overexpression linked to shorter OS and increased metastasis in ER+ breast cancer. |
+| Survival BRCA | CCNE1 | B | CIViC | Gene expression | Poor | High cyclin E expression strongly associated with poor prognosis (HR=13.3 vs. normal levels). |
+| Survival BRCA | CD274 | B | CIViC | Gene expression | Mixed | PD-L1 overexpression correlates with shortened OS; however, PD-L1+ TIICs indicate better prognosis. |
+| Survival BRCA | ERBB2 | B | CIViC | Protein level | Poor | Higher serum HER2 associated with worse PFS and OS in breast cancer (HR per 10 ng/mL: 1.024). |
+| Survival BRCA | EZH2 | B | CIViC | Gene expression | Poor | High EZH2 expression associated with poorer outcome (meta-analysis: 51 studies, 9444 patients). |
+| Survival BRCA | FCGR2B | B | CIViC | Mutation | Poor | FCGR2B I232T carriers did not benefit from trastuzumab, unlike I/I patients (p=0.03 interaction). |
+| Survival BRCA | FGFR1 | B | CIViC | Copy number alteration, Gene expression | Poor | FGFR1 amplification/expression predicts worse OS (meta-analysis) and poor DFS in luminal A subtype. |
+| Survival BRCA | GNAS | B | CIViC | Mutation | Poor | GNAS T393C TT genotype associated with higher death risk; 10-yr survival 63% (CC) vs. 23% (TT). |
+| Survival BRCA | MKI67 | B | CIViC | Gene expression | Poor | Ki-67 >=25% by IHC prognostic for worse OS (meta-analysis HR=2.05). |
+| Survival BRCA | NCOA3 | B | CIViC | Copy number alteration, Gene expression | Poor | NCOA3 amplification and high expression both associated with shorter disease-specific survival. |
+| Survival BRCA | PGR | B | CIViC | Gene expression | Mixed | PgR expression predicts better relapse-free survival; low expression predicts worse DFS. |
+| Survival BRCA | PIK3CA | B | CIViC | Mutation | Mixed | H1047R mutations predict longer OS; exon 9 mutations predict worse OS and DFS; overall effect context-dependent. |
+| Survival BRCA | TP53 | B | CIViC | Mutation | Poor | Multiple hotspot mutations (R248W worst) predict poor OS; DNA-contact region mutations worsen RFS. |
+| Survival LUAD | CCND1 | B | CIViC | Copy number alteration, Gene expression | Poor | Increased CCND1 copy number and expression associated with poorer OS in NSCLC. |
+| Survival LUAD | CD274 | B | CIViC | Gene expression | Mixed | PD-L1+/CD8-low tumors show shortest PFS; PD-L1+ TIICs may indicate better prognosis. |
+| Survival LUAD | CDKN2A | B | CIViC | DNA methylation, Gene expression | Poor | p16 promoter hypermethylation and low p16 protein linked to shorter recurrence time and OS in NSCLC. |
+| Survival LUAD | EGFR | B | CIViC | Mutation | Mixed | L858R predicts better OS; T790M predicts worse PFS and OS; activating mutations overall protective. |
+| Survival LUAD | FGFR1 | B | CIViC | Copy number alteration | Mixed | Moderate FGFR1 copy number (4-6) reduces death risk; high amplification worsens OS (meta-analysis). |
+| Survival LUAD | KRAS | B | CIViC | Mutation | Poor | KRAS mutations (esp. G12V, G12C) associated with worse OS, PFS, and higher recurrence in NSCLC. |
+| Survival LUAD | MAP2K7 | B | CIViC | Mutation | Poor | E116K genotype reduces median survival by 4-7 months; increases cancer death risk (HR up to 1.94). |
+| Survival LUAD | NOTCH1 | B | CIViC | Mutation | Poor | Gain-of-function mutations (D1642H, R2327W, etc.) correlate with poor prognosis in TP53-wt lung cancer. |
+| Survival LUAD | NRG1 | B | CIViC | Gene fusion | Poor | SLC3A2-NRG1 fusion associated with inferior survival in mucinous lung adenocarcinoma. |
+| Survival LUAD | RET | B | CIViC | Gene expression | Poor | High RET mRNA expression correlates with shorter OS in ASCL1-expressing lung adenocarcinoma. |
+| Survival LUAD | SLC3A2 | B | CIViC | Gene fusion | Poor | SLC3A2-NRG1 fusion-positive patients demonstrate inferior OS in lung adenocarcinoma. |
+| Survival LUAD | SMARCA4 | B | CIViC | Mutation, Gene expression | Poor | Loss-of-function mutations and low expression both predict worse OS in lung adenocarcinoma. |
+| Survival LUAD | STK11 | B | CIViC | Mutation | Poor | Exon 1-2 mutations significantly shorten OS (24 vs. 69 months) in non-squamous NSCLC. |
+| Survival LUAD | XRCC1 | B | CIViC | Mutation | Better | R399Q variant correlates with higher OS in NSCLC patients treated with gemcitabine+platinum. |
+| Survival COADREAD | BRAF | B | CIViC | Mutation | Mixed | V600E predicts poor OS (HR ~2-5x); non-V600 mutations show longer survival than V600E and wt. |
+| Survival COADREAD | CDX2 | B | CIViC | Gene expression | Better | CDX2 loss predicts lower 5-yr DFS in stage II/III CRC (HR=3.44 discovery; 2.42 validation). |
+| Survival COADREAD | DCC | B | CIViC | Gene expression | Better | DCC expression predicts better 5-yr survival (94% vs. 62% stage II; 59% vs. 33% stage III). |
+| Survival COADREAD | EZH2 | B | CIViC | Mutation, Gene expression | Poor | Intron 6 variant and high expression both correlate with lower PFS and OS in metastatic CRC. |
+| Survival COADREAD | FGFR1 | B | CIViC | Copy number alteration | Poor | FGFR1 amplification predicts worse OS across cancer types (meta-analysis). |
+| Survival COADREAD | GNAS | B | CIViC | Mutation | Better | GNAS T393C TT genotype shows higher 5-yr survival (88%) vs. CC (50%) in stage I-II CRC. |
+| Survival COADREAD | HIF1A | B | CIViC | Gene expression | Poor | HIF1A overexpression linked to higher CRC-specific mortality (adjusted HR=1.72, p=0.0007). |
+| Survival COADREAD | KRAS | B | CIViC | Mutation | Mixed | G12/G13 mutations reduce PFS and OS; however, G12D shows longer survival than other G12 variants. |
+| Survival COADREAD | NRAS | B | CIViC | Mutation | Poor | NRAS mutations associated with poorer survival and worse prognosis in CRC. |
+| Survival COADREAD | PIK3CA | B | CIViC | Mutation | Poor | Mutations reduce relapse-free survival; E545K especially associated with high recurrence (89%). |
+| Survival COADREAD | POLE | B | CIViC | Mutation | Better | Proofreading domain mutations (P286R, V411L, S459F) identify immunogenic CRCs with excellent prognosis. |
+| Survival COADREAD | THBS2 | B | CIViC | Gene expression | Poor | Low THBS2 expression is a negative prognostic factor for DFS (HR=3.057, p=0.002). |
+| Drug: Cisplatin (BLCA) | ERCC2 | B | OncoKB | Mutation | Sensitivity | Oncogenic ERCC2 mutations predict sensitivity to cisplatin-based chemotherapy in bladder cancer. |
+| Drug: TMZ (LGG) | IDH1 | B | CIViC | Mutation | Sensitivity | IDH mutations improve temozolomide response rate (61% vs. 17%, p=0.01) in low-grade glioma. |
+| Drug: TMZ (LGG) | MGMT | B | CIViC | Gene expression | Sensitivity | Low MGMT protein expression associated with objective response to temozolomide (p<0.04). |
+
+**Notes.**
+- **Level** — all entries are evidence Level B (clinical evidence from well-powered studies with consensus). ERCC2 is an OncoKB Level 3 biomarker, harmonized to Level B under the AMP/ASCO/CAP framework.
+- **KB** — source knowledge base.
+- **Omics** — molecular alteration type of the supporting evidence: *Mutation* (somatic/germline point mutation or indel), *Gene expression* (mRNA or protein by IHC), *Copy number alteration* (amplification/deletion), *DNA methylation* (e.g. promoter hypermethylation), *Gene fusion* (structural rearrangement), or *Protein level* (circulating/serum protein). This describes the evidence source and is distinct from the benchmark's input data modalities (mRNA, CNV, SNV, DNAm, miRNA).
+- **Direction** — prognostic or predictive association: *Poor* = alteration associated with worse prognosis (shorter OS/PFS/DFS); *Better* = improved prognosis; *Mixed* = direction depends on the specific variant or context; *Sensitivity* = alteration predicts response to the indicated drug.
+- **Abbreviations** — OS = overall survival, PFS = progression-free survival, DFS = disease-free survival, RFS = relapse-free survival, DSS = disease-specific survival, HR = hazard ratio, IHC = immunohistochemistry, NSCLC = non-small-cell lung cancer, CRC = colorectal cancer, mBC = metastatic breast cancer.
 
 ---
 
