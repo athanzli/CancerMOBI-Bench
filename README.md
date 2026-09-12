@@ -58,7 +58,7 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 
 ### Dependencies
 
-- Python 3.11+
+- Python 3.11 or 3.12
 
 ```bash
 pip install -r requirements.txt          # or: conda env create -f environment.yml
