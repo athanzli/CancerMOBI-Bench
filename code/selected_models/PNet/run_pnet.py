@@ -262,7 +262,8 @@ def run_pnet(
         
         if epoch % 20 == 0:
             # print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, lr: {current_lr}")
-        
+            pass
+
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_epoch = epoch

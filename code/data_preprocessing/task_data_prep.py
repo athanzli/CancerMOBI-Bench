@@ -520,7 +520,7 @@ cur_proj = 'TCGA-BRCA'
 st_i = len(survival_task_bks)
 for i, cur_g in enumerate(cr_genes):
     cur_l = np.unique(bk.loc[(bk['TCGA_project']==cur_proj) & (bk['Gene']==cur_g), 'Level'].values)[0]
-    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split('-')[1]}',cur_l]
+    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split("-")[1]}',cur_l]
 
 bk.loc[bk['TCGA_project']=='TCGA-LUSC'].sort_values(by='Gene')
 """
@@ -549,7 +549,7 @@ st_i = len(survival_task_bks)
 cur_proj = 'TCGA-LUSC'
 for i, cur_g in enumerate(cr_genes):
     cur_l = np.unique(bk.loc[(bk['TCGA_project']==cur_proj) & (bk['Gene']==cur_g), 'Level'].values)[0]
-    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split('-')[1]}',cur_l]
+    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split("-")[1]}',cur_l]
 
 bk.loc[bk['TCGA_project']=='TCGA-LUAD']
 """
@@ -639,7 +639,7 @@ st_i = len(survival_task_bks)
 cur_proj = 'TCGA-HNSC'
 for i, cur_g in enumerate(cr_genes):
     cur_l = np.unique(bk.loc[(bk['TCGA_project']==cur_proj) & (bk['Gene']==cur_g), 'Level'].values)[0]
-    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split('-')[1]}',cur_l]
+    survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split("-")[1]}',cur_l]
 
 # for cur_proj in ["TCGA-LGG",
 # "TCGA-SKCM",
@@ -657,7 +657,7 @@ for i, cur_g in enumerate(cr_genes):
 #     st_i = len(survival_task_bks)
 #     for i, cur_g in enumerate(cr_genes):
 #         cur_l = np.unique(bk.loc[(bk['TCGA_project']==cur_proj) & (bk['Gene']==cur_g), 'Level'].values)[0]
-#         survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split('-')[1]}',cur_l]
+#         survival_task_bks.loc[i+st_i, ['Gene','Task','Level']]=[cur_g,f'survival_{cur_proj.split("-")[1]}',cur_l]
 
 survival_task_bks = survival_task_bks.drop_duplicates()
 
