@@ -10,10 +10,11 @@ Usage:
                           X_val=X_val, y_val=y_val, X_test=X_tst, y_test=y_tst, device='cuda:0')
 
     # Run multiple methods and aggregate with RRA
-    ft_score = run_method_rra(['GAUDI', 'DIABLO', 'DeepKEGG'],
-                              X_train=X_trn, y_train=y_trn,
-                              X_val=X_val, y_val=y_val,
-                              X_test=X_tst, y_test=y_tst, device='cuda:0')
+    # (returns a 'p-value' column; lower = more consistently top-ranked)
+    consensus = run_method_rra(['GAUDI', 'DIABLO', 'DeepKEGG'],
+                               X_train=X_trn, y_train=y_trn,
+                               X_val=X_val, y_val=y_val,
+                               X_test=X_tst, y_test=y_tst, device='cuda:0')
 """
 
 import sys
@@ -79,6 +80,10 @@ _THREE_OR_FOUR = ['GENIUS']
 _TWO_OR_THREE = ['GDF']
 
 ALL_METHODS = _UNSUPERVISED + _TRAIN_TEST + _TRAIN_VAL_TEST + _TRAIN_ONLY_LABELED
+
+# Methods whose per-class scores carry meaningful signs and must not be made absolute
+# (mirrors MODELS_KEEPING_NEG_SCORES in code/result_analysis/setups.py).
+_KEEP_SIGN_METHODS = ['MOGONET', 'MORE', 'MoAGLSA']
 
 
 def run_method(
@@ -197,9 +202,12 @@ def run_method(
         sys.modules['utils'] = _code_utils
 
     try:
-        # Dispatch
-        ft_score = _dispatch(method_name, X_train, y_train, X_val, y_val,
-                             X_test, y_test, device)
+        # Dispatch. Several methods rename or reindex the frames they are given
+        # in place, so hand each one its own copy: the caller's DataFrames are
+        # never modified by run_method().
+        _c = lambda d: d.copy() if d is not None else None
+        ft_score = _dispatch(method_name, _c(X_train), _c(y_train), _c(X_val),
+                             _c(y_val), _c(X_test), _c(y_test), device)
     finally:
         # Restore previous state even if the method raises, so a failed method
         # does not leave cwd/sys.path/sys.modules pointing into code/.
@@ -231,7 +239,11 @@ def _dispatch(method_name, X_train, y_train, X_val, y_val, X_test, y_test, devic
         return ft_score
 
     elif method_name == 'DPM':
-        return run_dpm(data=X_train, label=y_train)
+        ft_score = run_dpm(data=X_train, label=y_train)
+        # DPM outputs merged p-values (lower = more important). Convert to
+        # -log10(p) so that higher = more important, like every other method here.
+        p = ft_score.iloc[:, 0].astype(float).clip(lower=1e-300)
+        return pd.DataFrame({'score': -np.log10(p)}, index=ft_score.index)
 
     elif method_name == 'DIABLO':
         ft_score, ft_score_rank, perf = run_diablo(
@@ -386,34 +398,33 @@ def run_method_rra(
             ignore y_train) will handle them accordingly.
 
     Returns:
-        ft_score: A single-column DataFrame with 'score' column, indexed by
-            gene name. Scores are -log10(p-value) from RRA, so higher values
-            indicate genes more consistently ranked highly across methods.
+        consensus: A single-column DataFrame with a 'p-value' column, indexed by
+            gene name and sorted ascending, so lower p-values are the top
+            consensus candidates. Same format as
+            `aggregate_rankings_from_gene_scores()`.
+
+    Warning:
+        `run_benchmark()` expects higher = more important, so do not pass this
+        DataFrame to it unchanged — the ranking would be silently inverted.
+        Convert it in your wrapper and set mode=2:
+
+            p = consensus['p-value'].clip(lower=1e-300)
+            return (-np.log10(p)).to_frame('score')
     """
     from aggregate_rankings import aggregate_rankings_from_gene_scores
-    from benchmark_pipeline import convert_ft_score_to_gene_level
-
-    # Method output mode for convert_ft_score_to_gene_level:
-    #   mode 0: molecule-level (most methods - CpG/miRNA/gene names with MOD@ prefix)
-    #   mode 1: gene-level with MOD@ prefix (GDF converts CpGs/miRNAs to genes internally)
-    #   mode 2: gene-level without prefix (DPM strips MOD@ prefix internally)
-    _METHOD_MODE = {'GDF': 1, 'DeePathNet': 1, 'DPM': 2}
+    from benchmark_pipeline import convert_ft_score_to_gene_level, get_method_mode
 
     ft_scores = []
     for method_name in method_names:
         print(f"\n[run_method_rra] Running {method_name}...")
         ft = run_method(
-            method_name, X_train=X_train.copy(),
-            y_train=y_train.copy() if y_train is not None else None,
-            X_val=X_val.copy() if X_val is not None else None,
-            y_val=y_val.copy() if y_val is not None else None,
-            X_test=X_test.copy() if X_test is not None else None,
-            y_test=y_test.copy() if y_test is not None else None,
+            method_name, X_train=X_train, y_train=y_train,
+            X_val=X_val, y_val=y_val, X_test=X_test, y_test=y_test,
             device=device,
         )
         print(f"[run_method_rra] {method_name} done. Output shape: {ft.shape}")
         # Convert to gene-level so all methods use the same feature space
-        mode = _METHOD_MODE.get(method_name, 0)
+        _, mode = get_method_mode(method_name)
         # mode 2 (gene-only output, e.g. DPM) needs the input modalities to
         # reconstruct per-omics rows during gene-level conversion.
         if mode == 2:
@@ -427,14 +438,10 @@ def run_method_rra(
 
     print(f"\n[run_method_rra] Aggregating {len(ft_scores)} gene-level rankings via RRA...")
     consensus = aggregate_rankings_from_gene_scores(ft_scores)
+    consensus.index.name = None
 
-    # Convert p-values to scores: -log10(p-value), higher = more important
-    scores = -np.log10(consensus['p-value'].clip(lower=1e-300))
-    ft_score = pd.DataFrame({'score': scores}, index=consensus.index)
-    ft_score.index.name = None
-
-    print(f"[run_method_rra] Done. Consensus shape: {ft_score.shape}")
-    return ft_score
+    print(f"[run_method_rra] Done. Consensus shape: {consensus.shape}")
+    return consensus
 
 
 def _normalize_output(ft_score, method_name):
@@ -442,21 +449,26 @@ def _normalize_output(ft_score, method_name):
     if ft_score is None:
         raise RuntimeError(f"{method_name} returned None for feature scores.")
 
-    if isinstance(ft_score, pd.DataFrame):
-        if ft_score.shape[1] == 1:
-            ft_score.columns = ['score']
-        elif 'score' in ft_score.columns:
-            ft_score = ft_score[['score']]
-        else:
-            # For methods that return per-class scores, take the mean across columns
-            ft_score = pd.DataFrame(
-                ft_score.mean(axis=1), columns=['score']
-            )
-    elif isinstance(ft_score, pd.Series):
+    if isinstance(ft_score, pd.Series):
         ft_score = ft_score.to_frame(name='score')
-    else:
+    elif not isinstance(ft_score, pd.DataFrame):
         raise RuntimeError(
             f"{method_name} returned unexpected type: {type(ft_score)}"
         )
 
-    return ft_score
+    if ft_score.shape[1] > 1 and 'score' in ft_score.columns:
+        ft_score = ft_score[['score']]
+
+    # Some methods build their scores by .loc assignment, which leaves the column
+    # as dtype object; make them numeric before any arithmetic.
+    vals = ft_score.astype(float)
+
+    # Whether scores are magnitudes or signed is a property of the METHOD, not of
+    # how many columns it happens to return: a single-class test set collapses a
+    # per-class frame to one column, and that column still needs the magnitude.
+    if method_name not in _KEEP_SIGN_METHODS:
+        vals = vals.abs()
+
+    # Per-class attributions are antisymmetric on binary tasks, so a plain mean
+    # would cancel them to ~0; averaging magnitudes keeps the signal.
+    return pd.DataFrame(vals.mean(axis=1), columns=['score'])
