@@ -30,9 +30,10 @@ This repository supports two main use cases:
 - [Use Case 2: Discover candidate biomarkers](#use-case-2-discover-candidate-biomarkers)
   - [Additional dependencies](#additional-dependencies)
   - [Step 1: Run benchmarked methods](#step-1-run-benchmarked-methods)
-  - [Step 2: Aggregate rankings with RRA](#step-2-aggregate-rankings-with-rra)
-- [Reference biomarkers](#reference-biomarkers)
-- [Evaluation metrics](#evaluation-metrics)
+  - [Step 2: Use RRA to obtain a consensus biomarker panel](#step-2-use-rra-to-obtain-a-consensus-biomarker-panel)
+- [Appendix](#appendix)
+  - [Reference biomarkers](#reference-biomarkers)
+  - [Evaluation metrics](#evaluation-metrics)
 - [Citation](#citation)
 
 ---
@@ -57,17 +58,16 @@ This creates a `data/` directory under the repository root. At a minimum, the fo
 
 ### Dependencies
 
-- Python 3.10+ recommended
-- R 4.0+ (required for several benchmarked methods and RRA aggregation)
-
-> ```bash
-> pip install -r requirements.txt          # or: conda env create -f environment.yml
-> ```
-
-**R bridge** (required for RRA aggregation in Use Case 2, and for R-based methods such as DIABLO, GAUDI, MCIA, GDF, DPM, asmPLSDA):
+- Python 3.11+
 
 ```bash
-pip install "rpy2>=3.5.5"
+pip install -r requirements.txt          # or: conda env create -f environment.yml
+```
+
+**R bridge** (Use Case 2 only — required for RRA aggregation and for the R-based methods DIABLO, GAUDI, MCIA, GDF, DPM, asmPLSDA). Install **R 4.5+** first, then:
+
+```bash
+pip install rpy2
 ```
 
 ---
@@ -100,7 +100,7 @@ def run_method_custom(
     Args:
         X_train (pd.DataFrame): Training features.
             - Index: sample IDs
-            - Columns: feature names in "MOD@feature" format (e.g., "mRNA@TP53", "DNAm@cg00000029")
+            - Columns: feature names in "MOD@feature" format (e.g., "mRNA@TP53", "DNAm@cg04658354")
         y_train (pd.DataFrame): Training labels.
             - Index: sample IDs
             - Column format depends on the `surv_op` parameter in `run_benchmark()`:
@@ -163,8 +163,8 @@ def run_method_custom(
 | mRNA | Gene-level | `mRNA@TP53`, `mRNA@KRAS`, `mRNA@EGFR` |
 | CNV | Gene-level | `CNV@APOC1`, `CNV@MYC`, `CNV@ERBB2` |
 | SNV | Gene-level | `SNV@TP53`, `SNV@BRAF`, `SNV@PIK3CA` |
-| DNAm | CpG-level | `DNAm@cg00000029`, `DNAm@cg22832044` |
-| miRNA | miRNA-level | `miRNA@hsa-miR-100-5p`, `miRNA@hsa-let-7a-5p` |
+| DNAm | CpG-level | `DNAm@cg04658354`, `DNAm@cg07991600` |
+| miRNA | miRNA-level | `miRNA@hsa-mir-21`, `miRNA@hsa-mir-155` |
 
 #### Output format: `ft_score`
 
@@ -180,7 +180,7 @@ The `mode` parameter tells the benchmark how to interpret the **output index of 
 
 | Mode | When to use | `ft_score` index format | Example |
 |------|-------------|------------------------|---------|
-| `0` (default) | Your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level. | `MOD@molecule` | `DNAm@cg00000029`, `miRNA@hsa-miR-100-5p`, `mRNA@TP53` |
+| `0` (default) | Your method outputs scores for the same features it receives as input (CpG sites, miRNAs, genes, etc.). The benchmark will handle the mapping to gene level. | `MOD@molecule` | `DNAm@cg04658354`, `miRNA@hsa-mir-21`, `mRNA@TP53` |
 | `1` | Your method internally maps CpGs/miRNAs to genes but retains the modality prefix (e.g., `DNAm@TP53` and `mRNA@TP53` are scored separately). | `MOD@gene` | `DNAm@TP53`, `miRNA@KRAS`, `mRNA@EGFR` |
 | `2` | Your method produces one aggregated score per gene, regardless of which omics type it came from. | `gene` | `TP53`, `KRAS`, `EGFR` |
 
@@ -321,7 +321,8 @@ The benchmark returns two dictionaries containing evaluation metrics:
 ```
 result/                                     # Or your specified res_save_path
 ├── survival_BRCA/
-│   └── ft_score_fold{0-4}.csv              # Feature scores for each fold
+│   └── ft_score_{omics_comb}_fold{0-4}.csv # Feature scores per omics combination and fold
+│                                           #   e.g. ft_score_DNAm+mRNA+miRNA_fold0.csv
 ├── survival_LUAD/
 │   └── ...
 ├── your_method_accuracy_results.pkl        # Accuracy metrics
@@ -365,16 +366,31 @@ install.packages("RobustRankAggreg")
 | GENIUS | `torch==2.2.2`, `captum==0.7.0` |
 | TMONet | `torch==2.2.2`, `captum==0.7.0`, `lifelines`, `numba` |
 | MOGLAM | `torch==2.2.2` |
-| Stabl | bundled source: `pip install ./code/selected_models/Stabl/` (pulls `knockpy`, `osqp`, `statsmodels`, `adjustText`; its `knockpy`→`choldate` dependency is compiled, so a C/C++ toolchain is required — on Windows install the **Microsoft C++ Build Tools** first) |
+| Stabl | bundled source: `pip install ./code/selected_models/Stabl/ numpy==1.26.4` |
 
-**Method-specific R packages** (install via `install.packages()` or Bioconductor):
+> Stabl needs a C compiler to build its dependencies (on Windows, install the **Microsoft C++ Build Tools** first).
+
+**Method-specific R packages.** Most are on CRAN or Bioconductor; `gaudi` and `DFNET` are only on GitHub.
 
 | Method | R packages |
 |--------|------------|
 | DIABLO | `mixOmics` (Bioconductor), `caret` |
-| GAUDI | `gaudi` |
-| GDF | `ranger`, `igraph`, `pROC`, `DFNET`, `ModelMetrics`, `PRROC` |
+| MCIA | `omicade4` (Bioconductor) |
+| GDF | `DFNET` (GitHub), `ranger`, `igraph`, `pROC`, `ModelMetrics`, `PRROC` |
+| GAUDI | `gaudi` (GitHub) |
 | asmPLSDA | `asmbPLS` |
+| DPM | `ActivePathways` |
+
+```r
+# CRAN + Bioconductor
+install.packages(c("remotes", "BiocManager", "caret", "ranger", "igraph",
+                   "pROC", "ModelMetrics", "PRROC", "asmbPLS", "ActivePathways"))
+BiocManager::install(c("mixOmics", "omicade4"))
+
+# GitHub-only (GAUDI, GDF)
+remotes::install_github("hirscheylab/gaudi", repos = BiocManager::repositories())
+remotes::install_github("pievos101/DFNET@cran")
+```
 
 ### Step 1: Run benchmarked methods
 
@@ -384,22 +400,22 @@ Use `run_method()` from `run_method.py` to run any benchmarked method.
 from run_method import run_method
 
 # Unsupervised method (no labels needed)
-ft_score = run_method('GAUDI', X_train=X_trn)
+ft_gaudi = run_method('GAUDI', X_train=X_trn)
 
 # Statistical/ML method (needs train + test)
-ft_score = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
-                      X_test=X_tst, y_test=y_tst)
+ft_diablo = run_method('DIABLO', X_train=X_trn, y_train=y_trn,
+                       X_test=X_tst, y_test=y_tst)
 
 # Deep learning method (needs train + val + test + GPU)
-ft_score = run_method('DeePathNet', X_train=X_trn, y_train=y_trn,
-                      X_val=X_val, y_val=y_val,
-                      X_test=X_tst, y_test=y_tst, device='cuda:0')
-ft_score = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
-                      X_val=X_val, y_val=y_val,
-                      X_test=X_tst, y_test=y_tst, device='cuda:0')
+ft_deepathnet = run_method('DeePathNet', X_train=X_trn, y_train=y_trn,
+                           X_val=X_val, y_val=y_val,
+                           X_test=X_tst, y_test=y_tst, device='cuda:0')
+ft_deepkegg = run_method('DeepKEGG', X_train=X_trn, y_train=y_trn,
+                         X_val=X_val, y_val=y_val,
+                         X_test=X_tst, y_test=y_tst, device='cuda:0')
 ```
 
-The returned `ft_score` is a single-column DataFrame (column `'score'`) indexed by feature name in `MOD@molecule` format (e.g., `mRNA@TP53`, `DNAm@cg00000029`). Higher scores indicate greater importance.
+The returned `ft_score` is a single-column DataFrame (column `'score'`) indexed by feature name in `MOD@molecule` format (e.g., `mRNA@TP53`, `DNAm@cg04658354`). Higher scores indicate greater importance.
 
 #### Input data format
 
@@ -410,8 +426,8 @@ Feature matrices (`X_train`, `X_val`, `X_test`) should be pandas DataFrames with
 | mRNA | Gene-level | `mRNA@TP53`, `mRNA@KRAS` |
 | CNV | Gene-level | `CNV@APOC1`, `CNV@MYC` |
 | SNV | Gene-level | `SNV@TP53`, `SNV@BRAF` |
-| DNAm | CpG-level | `DNAm@cg00000029`, `DNAm@cg22832044` |
-| miRNA | miRNA-level | `miRNA@hsa-miR-100-5p` |
+| DNAm | CpG-level | `DNAm@cg04658354`, `DNAm@cg07991600` |
+| miRNA | miRNA-level | `miRNA@hsa-mir-21`, `miRNA@hsa-mir-155` |
 
 Label DataFrames (`y_train`, `y_val`, `y_test`) should have a single `'label'` column.
 
@@ -428,56 +444,33 @@ Each method accepts different subsets of the train/val/test splits. For biomarke
 
 > Methods that only need to fit a model (unsupervised, statistical/ML) benefit from seeing all available samples. For DL methods, a held-out validation set is needed for early stopping during training, so we keep `val` separate but combine `train` and `test` to maximize data for both model fitting and feature importance computation.
 
-### Step 2: Run multiple methods and build a consensus panel
+### Step 2: Use RRA to obtain a consensus biomarker panel
 
-Use `run_method_rra()` to run multiple methods and aggregate their rankings into a consensus gene ranking via Robust Rank Aggregation (RRA) — all in one call:
-
-```python
-from run_method import run_method_rra
-
-consensus = run_method_rra(
-    ['DIABLO', 'DeePathNet', 'DeepKEGG'],
-    X_train=X_trn, y_train=y_trn,
-    X_val=X_val, y_val=y_val,
-    X_test=X_tst, y_test=y_tst, device='cuda:0')
-print(consensus.head(20))  # DataFrame with 'score' column (-log10 p-value from RRA)
-```
-
-`run_method_rra()` internally runs each method, converts outputs to gene-level scores, and aggregates via RRA. The returned DataFrame is indexed by gene name (without modality prefix), with higher scores indicating more consistently top-ranked genes. If you use `run_method_rra()` as a wrapper for `run_benchmark()`, set `mode=2` in your wrapper function.
-
-#### Advanced: run methods individually
-
-If you need more control (e.g., custom gene-level conversion or method-specific parameters), you can run methods individually and aggregate manually:
+Convert each method's feature scores to gene level, then aggregate the gene rankings into a consensus panel via Robust Rank Aggregation (RRA):
 
 ```python
-from run_method import run_method
 from benchmark_pipeline import convert_ft_score_to_gene_level
 from aggregate_rankings import aggregate_rankings_from_gene_scores
 
-# Note: use .copy() because some methods (e.g., DeePathNet) modify DataFrames in-place
-ft_diablo = run_method('DIABLO', X_train=X_trn.copy(), y_train=y_trn.copy(),
-                       X_test=X_tst.copy(), y_test=y_tst.copy())
-ft_deepathnet = run_method('DeePathNet', X_train=X_trn.copy(), y_train=y_trn.copy(),
-                           X_val=X_val.copy(), y_val=y_val.copy(),
-                           X_test=X_tst.copy(), y_test=y_tst.copy(), device='cuda:0')
-ft_kegg = run_method('DeepKEGG', X_train=X_trn.copy(), y_train=y_trn.copy(),
-                     X_val=X_val.copy(), y_val=y_val.copy(),
-                     X_test=X_tst.copy(), y_test=y_tst.copy(), device='cuda:0')
+# Convert each method's scores to gene level
+gene_diablo = convert_ft_score_to_gene_level(ft_diablo, method='DIABLO')
+gene_deepathnet = convert_ft_score_to_gene_level(ft_deepathnet, method='DeePathNet')
+gene_deepkegg = convert_ft_score_to_gene_level(ft_deepkegg, method='DeepKEGG')
 
-# Convert from MOD@molecule to gene-level scores
-gene_diablo = convert_ft_score_to_gene_level(ft_diablo, mode=0)
-gene_deepathnet = convert_ft_score_to_gene_level(ft_deepathnet, mode=1)  # DeePathNet outputs MOD@gene
-gene_kegg = convert_ft_score_to_gene_level(ft_kegg, mode=0)
-
-consensus = aggregate_rankings_from_gene_scores([gene_diablo, gene_deepathnet, gene_kegg])
+consensus = aggregate_rankings_from_gene_scores(
+    [gene_diablo, gene_deepathnet, gene_deepkegg])
 print(consensus.head(20))
 ```
 
-> **Note**: `convert_ft_score_to_gene_level()` converts raw method output (`MOD@molecule` format) to gene-level scores. The `mode` parameter depends on the method's output format: `mode=0` for most methods (molecule-level output), `mode=1` for methods that output `MOD@gene` format (e.g., DeePathNet, GDF).
+The consensus is indexed by gene name (without modality prefix) and sorted by p-value ascending, so **lower p-values are the top candidate biomarkers**.
+
+> Specify the method name via `method=` so the conversion uses the right mode for that method's output format.
 
 ---
 
-## Reference biomarkers
+## Appendix
+
+### Reference biomarkers
 
 CancerMOBI-Bench evaluates each method against a curated panel of **43 clinically validated reference biomarkers** spanning the 5 real-data tasks. These reference biomarkers were collected from oncology knowledge bases and restricted to high-confidence (clinical evidence from well-powered studies with expert consensus).
 
@@ -538,7 +531,7 @@ The full panel is also provided in [`reference_biomarkers.csv`](reference_biomar
 
 ---
 
-## Evaluation metrics
+### Evaluation metrics
 
 **Accuracy Metrics** (how well your method identifies known biomarkers):
 - **AR** (Average Recall): Average recall rates of biomarkers across ranking
