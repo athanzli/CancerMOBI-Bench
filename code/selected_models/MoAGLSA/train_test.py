@@ -13,6 +13,23 @@ torch.autograd.set_detect_anomaly(True)
 
 cuda = True if torch.cuda.is_available() else False
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 def seed_torch(seed):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -193,7 +210,7 @@ def train_test(
     sample_weight_tr = sample_weight_tr.to(device)
     print('Finished prep data.')
 
-    torch.cuda.reset_peak_memory_stats(device) # Reset peak memory stats for the device
+    _reset_peak_memory(device) # Reset peak memory stats for the device
 
     print("Computing adj...")
     if adaption:
@@ -294,7 +311,7 @@ def train_test(
         total_params += model_param_count
     print(f"MoAGLSA model parameters: {total_params}.")
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during training: {peak_mb:.1f} MB")
     # -------------------------------------------------------------------------
     # early stopping: load the best model in case early stopping was not triggered

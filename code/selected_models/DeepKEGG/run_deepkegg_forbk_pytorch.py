@@ -13,6 +13,22 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score, roc_auc_scor
 torch.manual_seed(1029)
 np.random.seed(1029)
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
 import os
 import pandas as pd
 import numpy as np
@@ -339,7 +355,7 @@ def run_deepkegg(
     label_val,
     data_tst,
     label_tst,
-    device='cuda:7',
+    device='cuda:0',
     epochs=1000, # originally 500
     batch_size=64,
     # n_splits=5
@@ -521,7 +537,7 @@ def run_deepkegg(
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     # train
-    torch.cuda.reset_peak_memory_stats(device)
+    _reset_peak_memory(device)
 
     import time
     training_time = 0.0
@@ -628,7 +644,7 @@ def run_deepkegg(
 
     print(f"DeepKEGG Training time for {epoch} epochs: {training_time:.2f} seconds.")
     
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during training: {peak_mb:.1f} MB")
 
     model = deepcopy(best_model)
@@ -703,7 +719,7 @@ def run_deepkegg(
     ############################################################################################################################################################################
     ############################################################################################################################################################################
     ############################################################################################################################################################################
-    torch.cuda.reset_peak_memory_stats(device)
+    _reset_peak_memory(device)
     
     st_time = time.perf_counter()
     
@@ -728,7 +744,7 @@ def run_deepkegg(
     assert ~ft_score.isna().any().any()
 
     print(f"DeepKEGG BK identification running time: {time.perf_counter() - st_time:.2f} seconds.")
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during BK identification: {peak_mb:.1f} MB")
 
     return ft_score, perf

@@ -14,6 +14,23 @@ import time
 
 cuda = True if torch.cuda.is_available() else False
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 def gen_trte_adj_mat(data_tr_list, data_te_list, adj_parameter, device):
     adj_metric = "cosine"
     adj_train_list = []
@@ -188,7 +205,7 @@ def train_test(
     print(f"MOGLAM Model Pretraininig time for {epoch} epochs is {time.perf_counter() - st_time} seconds.")
 
     print("\nTraining...")
-    torch.cuda.reset_peak_memory_stats(device) # reset memory stats for the device
+    _reset_peak_memory(device) # reset memory stats for the device
     # -------------------------------------------------------------------------
     # early stopping
     import copy
@@ -260,7 +277,7 @@ def train_test(
         total_params += model_param_count
     print(f"MOGLAM model parameters: {total_params}.")
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during traininng: {peak_mb:.1f} MB")
 
     # -------------------------------------------------------------------------

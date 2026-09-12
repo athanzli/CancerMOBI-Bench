@@ -20,6 +20,23 @@ from .utils import one_hot_tensor, cal_sample_weight, gen_adj_mat_tensor, gen_te
 
 cuda = True if torch.cuda.is_available() else False
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 def prepare_trte_data(data_folder, view_list):
     num_view = len(view_list)
     labels_tr = np.loadtxt(os.path.join(data_folder, "labels_tr.csv"), delimiter=',')
@@ -216,7 +233,7 @@ def train_test(
     test_inverval = 50
     # -------------------------------------------------------------------------
 
-    torch.cuda.reset_peak_memory_stats(device) 
+    _reset_peak_memory(device)
 
     total_train_time = 0.0
 
@@ -285,7 +302,7 @@ def train_test(
         total_params += model_param_count
     print(f"MOGONET model parameters: {total_params}.")
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during training: {peak_mb:.1f} MB")
 
     # -------------------------------------------------------------------------

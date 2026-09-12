@@ -4,6 +4,23 @@ import numpy as np
 import pandas as pd
 import torch
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 from sklearn.metrics import f1_score
 from .utils import load_model_dict 
 from .models import init_model_dict
@@ -53,7 +70,7 @@ def cal_feat_imp(
     import time
     st_time = time.perf_counter()
 
-    torch.cuda.reset_peak_memory_stats(device) # reset memory stats for the device
+    _reset_peak_memory(device) # reset memory stats for the device
 
     for i in range(len(featname_list)):
         feat_imp = {"feat_name":featname_list[i]}
@@ -77,7 +94,7 @@ def cal_feat_imp(
                 print(f"Feature importance calculation for view {i}, feature {j} done.")
         feat_imp_list.append(pd.DataFrame(data=feat_imp))
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during BK identification: {peak_mb:.1f} MB")
 
     ed_time = time.perf_counter()

@@ -9,6 +9,23 @@ from .utils import (Eu_dis, hyperedge_concat, generate_G_from_H, construct_H_wit
 from .utils import save_model_dict
 cuda = True if torch.cuda.is_available() else False
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 from sklearn.metrics import roc_auc_score, average_precision_score, recall_score, precision_score, accuracy_score, f1_score, matthews_corrcoef, balanced_accuracy_score
 
 def prepare_trte_data(data_folder, view_list):
@@ -219,7 +236,7 @@ def train_test(
     no_imprv_count = 0
     best_loss = float('inf')
     best_model_dict = None
-    torch.cuda.reset_peak_memory_stats(device)
+    _reset_peak_memory(device)
 
     total_train_time = 0.0
 
@@ -278,7 +295,7 @@ def train_test(
         total_params += model_param_count
     print(f"MORE model parameters: {total_params}.")
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during BK training: {peak_mb:.1f} MB")
 
     if best_model_dict is not None:

@@ -24,6 +24,22 @@ from torch.utils.data import DataLoader
 from .model_transformer_lrp import DeePathNet
 from .models import *
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
 STAMP = datetime.today().strftime("%Y%m%d%H%M")
 # DeePathNet project dir = repo_root/code/selected_models/DeePathNet
 proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -369,7 +385,7 @@ def run_deepathnet(
 
     # device = 'cuda:2'
     torch.tensor([1], device=DEVICE) # to ensure the device is initialized correctly.
-    torch.cuda.reset_peak_memory_stats(DEVICE) if torch.cuda.is_available() else None
+    _reset_peak_memory(DEVICE)
 
     val_res, model = run_experiment(
         merged_df_train,
@@ -379,7 +395,7 @@ def run_deepathnet(
         class_name_to_id=class_name_to_id,
     )
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during training: {peak_mb:.1f} MB")
 
 
@@ -467,7 +483,7 @@ def run_deepathnet(
     ############################################################################################################################################################################
     ############################################################################################################################################################################
     # from transformer_shap_cancer_type import run_shap # too slow
-    torch.cuda.reset_peak_memory_stats(DEVICE) if torch.cuda.is_available() else None
+    _reset_peak_memory(DEVICE)
     import shap
 
     print("Running SHAP...")
@@ -508,7 +524,7 @@ def run_deepathnet(
     end = time.perf_counter()
     print("DeePathNet BK identification running time (s):", end - start)
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during BK identification: {peak_mb:.1f} MB")
 
     ## remove padded features

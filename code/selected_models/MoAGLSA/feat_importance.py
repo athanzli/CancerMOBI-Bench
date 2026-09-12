@@ -4,6 +4,23 @@ import numpy as np
 import pandas as pd
 import torch
 
+
+def _cuda_available_for(device):
+    """True only when `device` is a usable CUDA device."""
+    return torch.device(device).type == 'cuda' and torch.cuda.is_available()
+
+
+def _reset_peak_memory(device):
+    if _cuda_available_for(device):
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_mb(device):
+    if _cuda_available_for(device):
+        return torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return 0.0
+
+
 from sklearn.metrics import f1_score, accuracy_score
 from .utils import load_model_dict
 from .models import init_model_dict
@@ -38,7 +55,7 @@ def cal_feat_imp(
     data_trte_list = data_tensors # list of tensors N_trte x D_1, N_trte x D_2, ...  Can be on cpu, will be moved to gpu if cuda is True
     featname_list = [list(data[i].columns.values) for i in range(len(data))] # list of lists of strings. Each list corresponds to the feature names of a view
 
-    torch.cuda.reset_peak_memory_stats(device) if cuda else None
+    _reset_peak_memory(device)
 
     adj_tr_list, adj_trte_list = gen_trte_adj_mat(data_tr_list, data_trte_list, trte_idx, adj_parameter, device=device)
 
@@ -68,7 +85,7 @@ def cal_feat_imp(
             if j % 200 == 0: print('Finished feature {}/{} for view {}.'.format(j, dim_list[i], i))
         feat_imp_list.append(pd.DataFrame(data=feat_imp))
 
-    peak_mb = torch.cuda.max_memory_allocated(device) / (1024**2)
+    peak_mb = _peak_memory_mb(device)
     print(f"\n Peak GPU memory during BK identification: {peak_mb:.1f} MB")
 
     return feat_imp_list
