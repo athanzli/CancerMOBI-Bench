@@ -3,6 +3,7 @@ import pickle as pkl
 from typing import Optional, Union, List
 from sklearn.preprocessing import StandardScaler
 import os
+import re
 from utils import *
 
 DATASET_CODE_MAP = {
@@ -37,10 +38,66 @@ TRI_OMICS_COMBS = [ # tri-omics combinations with mRNA included
 
 BK_PATH = './data/bk_set/processed/'
 
+# ---------------------------------------------------------------------------
+# Output format of each method's ft_score, consumed by
+# convert_ft_score_to_gene_level():
+#   0: index is 'MOD@molecule' (CpG ids, miRNA ids, gene symbols)
+#   1: index is 'MOD@gene'     (method mapped CpGs/miRNAs to genes internally)
+#   2: index is a bare gene name (method also stripped the 'MOD@' prefix)
+# The non-zero entries are exactly the methods whose pipeline converts to gene
+# level internally. This is the single source of truth -- run_method_rra() reads it.
+METHOD_MODE = {
+    'GAUDI':      0,
+    'MCIA':       0,
+    'DIABLO':     0,
+    'asmPLSDA':   0,
+    'Stabl':      0,
+    'DeepKEGG':   0,
+    'MOGLAM':     0,
+    'CustOmics':  0,
+    'TMONet':     0,
+    'MOGONET':    0,
+    'MORE':       0,
+    'MoAGLSA':    0,
+    'MOFA':       0,
+    'GDF':        1,
+    'DeePathNet': 1,
+    'GENIUS':     1,
+    'Pathformer': 1,
+    'PNet':       1,
+    'GNNSubNet':  2,
+    'DPM':        2,
+}
+
+# Spellings used in the paper/figures that differ by more than case or punctuation.
+_METHOD_ALIASES = {'asmbplsda': 'asmPLSDA'}
+
+
+def _normalize_method_name(name) -> str:
+    """Lower-case and drop punctuation, so 'TMO-Net', 'tmonet' and 'TMONet' all match."""
+    return re.sub(r'[^a-z0-9]', '', str(name).lower())
+
+
+_METHOD_LOOKUP = {_normalize_method_name(m): m for m in METHOD_MODE}
+_METHOD_LOOKUP.update(_METHOD_ALIASES)
+
+
+def get_method_mode(method: str):
+    """Resolve a method name to (canonical_name, mode). Name matching ignores case
+    and punctuation, so 'deepathnet', 'DeePathNet' and 'DeePath-Net' are equivalent."""
+    canonical = _METHOD_LOOKUP.get(_normalize_method_name(method))
+    if canonical is None:
+        raise ValueError(
+            f"Unknown method '{method}'. Known methods: {sorted(METHOD_MODE)}"
+        )
+    return canonical, METHOD_MODE[canonical]
+
+
 def convert_ft_score_to_gene_level(
     ft_score: pd.DataFrame,
-    mode: int,
+    mode: Optional[int] = None,
     omics_types: Optional[List[str]] = None,
+    method: Optional[str] = None,
 ):
     r"""
     Args:
@@ -58,10 +115,28 @@ def convert_ft_score_to_gene_level(
                 information, e.g., 'TP53', 'KRAS'.
         omics_types (List[str], optional): list of omics types used in the model.
             Only required if mode == 2.
+        method (str, optional): name of the benchmarked method that produced
+            ft_score. If given, `mode` is looked up automatically from
+            METHOD_MODE, so you do not have to know it. Matching ignores case
+            and punctuation ('DeePathNet', 'deepathnet', 'DeePath-Net' all work).
     Returns:
         ft (pd.DataFrame): feature importance scores on gene level,
             with index as gene names and a single column 'score'.
     """
+    if method is not None:
+        canonical, resolved = get_method_mode(method)
+        if mode is not None and mode != resolved:
+            raise ValueError(
+                f"method='{method}' resolves to {canonical}, which uses mode="
+                f"{resolved}, but mode={mode} was also passed."
+            )
+        mode = resolved
+    if mode is None:
+        raise ValueError(
+            "Pass method='<method name>' to select the mode automatically, "
+            "or mode=0|1|2 explicitly."
+        )
+
     # rename ft_score's single column to 'score'
     ft = ft_score.copy()
     ft.columns = ['score']
@@ -69,7 +144,11 @@ def convert_ft_score_to_gene_level(
 
     ##
     if mode == 2:
-        assert omics_types is not None, "omics_types must be provided for mode 2."
+        if omics_types is None:
+            raise ValueError(
+                "mode 2 (bare gene names) also needs omics_types=[...] so the\n"
+                "per-modality rows can be reconstructed."
+            )
         ft = pd.DataFrame(
             index = np.concatenate([
                 [f"{mod}@{mol}" for mol in ft.index] for mod in omics_types
@@ -295,11 +374,13 @@ def run_benchmark(
                     y_test = y_tst
                 )
 
+                omics_comb_str = '+'.join(list(np.sort(omics_comb)))
+
                 # save return_vals to a pkl file
-                save_path = os.path.join(save_dir, f'ft_score_fold{fold}.csv')
+                save_path = os.path.join(
+                    save_dir, f'ft_score_{omics_comb_str}_fold{fold}.csv')
                 ft_score.to_csv(save_path)
 
-                omics_comb_str = '+'.join(list(np.sort(omics_comb)))
                 ft_score_res[(dataset_name, omics_comb_str, fold)] = ft_score
 
     ############################### evaluate #########################
